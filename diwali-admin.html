@@ -10,29 +10,63 @@
     <style>
         * { font-family: 'Inter', sans-serif; }
         body { background: #080e1a; color: #f0f4ff; min-height: 100vh; }
-        .navbar-custom { background: rgba(8,14,26,0.95); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(46,204,113,0.15); padding: 15px 0; position: sticky; top: 0; z-index: 1050; }
+        
+        .navbar-custom { 
+            background: rgba(8,14,26,0.95); backdrop-filter: blur(20px); 
+            border-bottom: 1px solid rgba(46,204,113,0.15); padding: 15px 0; 
+            position: sticky; top: 0; z-index: 1050; 
+        }
         .navbar-custom .navbar-brand { font-weight: 800; color: #fff !important; }
-        .dashboard-container { padding: 30px 20px; max-width: 1300px; margin: 0 auto; }
-        .card-glass { background: rgba(19,34,55,0.8); backdrop-filter: blur(10px); border: 1px solid rgba(46,204,113,0.1); border-radius: 20px; padding: 1.5rem; margin-bottom: 20px; }
-        .stat-card { background: rgba(19,34,55,0.6); border: 1px solid rgba(46,204,113,0.08); border-radius: 16px; padding: 1.5rem; text-align: center; }
+        
+        .dashboard-container { padding: 30px 20px; max-width: 1400px; margin: 0 auto; }
+        
+        .card-glass { 
+            background: rgba(19,34,55,0.8); backdrop-filter: blur(10px); 
+            border: 1px solid rgba(46,204,113,0.1); border-radius: 20px; 
+            padding: 1.5rem; margin-bottom: 20px; 
+        }
+        .card-title { font-size: 1.1rem; font-weight: 700; color: #fff; margin-bottom: 15px; border-bottom: 1px solid rgba(46,204,113,0.1); padding-bottom: 10px; }
+        
+        .stat-card { 
+            background: rgba(19,34,55,0.6); border: 1px solid rgba(46,204,113,0.08); 
+            border-radius: 16px; padding: 1.5rem; text-align: center; 
+        }
         .stat-card .stat-number { font-size: 2rem; font-weight: 800; color: #fff; }
         .stat-card .stat-label { color: #8899bb; font-size: 0.85rem; font-weight: 500; margin-top: 5px; }
-        .table-custom { color: #f0f4ff; border-color: #1f334f; }
-        .table-custom th { border-bottom: 2px solid #2a3a5a; color: #a0b8d0; font-weight: 600; }
-        .table-custom td { border-color: #1f334f; vertical-align: middle; }
+        
+        .table-custom { color: #f0f4ff; border-color: #1f334f; margin-bottom: 0; }
+        .table-custom th { border-bottom: 2px solid #2a3a5a; color: #a0b8d0; font-weight: 600; font-size: 0.85rem; background: rgba(19,34,55,0.9); }
+        .table-custom td { border-color: #1f334f; vertical-align: middle; font-size: 0.85rem; }
+        
         .badge-pending { background: rgba(251,191,36,0.15); color: #fbbf24; padding: 5px 12px; border-radius: 20px; font-weight: 600; font-size: 0.8rem;}
         .badge-approved { background: rgba(46,204,113,0.15); color: #2ecc71; padding: 5px 12px; border-radius: 20px; font-weight: 600; font-size: 0.8rem;}
         .badge-rejected { background: rgba(239,68,68,0.15); color: #f87171; padding: 5px 12px; border-radius: 20px; font-weight: 600; font-size: 0.8rem;}
-        .btn-copy { background: rgba(46,204,113,0.1); border: 1px solid rgba(46,204,113,0.2); color: #2ecc71; padding: 4px 10px; border-radius: 6px; cursor: pointer; transition: all 0.2s; }
-        .wallet-address { font-family: monospace; font-size: 0.85rem; color: #60a5fa; background: rgba(96,165,250,0.1); padding: 4px 8px; border-radius: 6px; }
+        
+        .btn-copy { 
+            background: rgba(46,204,113,0.1); border: 1px solid rgba(46,204,113,0.2); 
+            color: #2ecc71; padding: 4px 10px; border-radius: 6px; 
+            cursor: pointer; transition: all 0.2s; font-size: 0.75rem;
+        }
+        .btn-copy:hover { background: rgba(46,204,113,0.2); }
+        
+        .wallet-address { 
+            font-family: monospace; font-size: 0.8rem; color: #60a5fa; 
+            background: rgba(96,165,250,0.1); padding: 4px 8px; 
+            border-radius: 6px; max-width: 200px; display: inline-block;
+            overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
+        
+        .user-info { display: flex; flex-direction: column; }
+        .user-name { font-weight: 700; color: #fff; }
+        .user-id { font-size: 0.7rem; color: #64748b; }
     </style>
 </head>
 <body>
 
     <nav class="navbar navbar-custom">
-        <div class="container-fluid px-4">
+        <div class="container-fluid px-4 d-flex justify-content-between align-items-center">
             <a class="navbar-brand" href="index.html"><i class="bi bi-arrow-left me-2"></i> Back to Main Admin</a>
-            <span class="text-success fw-bold"><i class="bi bi-gift me-1"></i> Diwali Direct Offer Withdrawals</span>
+            <span class="text-success fw-bold"><i class="bi bi-gift me-1"></i> Diwali Direct Offer Panel</span>
         </div>
     </nav>
 
@@ -42,8 +76,8 @@
         <div class="row g-4 mb-4">
             <div class="col-md-3 col-6">
                 <div class="stat-card">
-                    <div class="stat-number" id="totalUsers">0</div>
-                    <div class="stat-label">Total Participating Users</div>
+                    <div class="stat-number text-info" id="totalUsers">0</div>
+                    <div class="stat-label">Total Earning Users</div>
                 </div>
             </div>
             <div class="col-md-3 col-6">
@@ -60,20 +94,43 @@
             </div>
             <div class="col-md-3 col-6">
                 <div class="stat-card">
-                    <div class="stat-number text-info" id="totalWithdrawn">$0</div>
+                    <div class="stat-number text-primary" id="totalWithdrawn">$0</div>
                     <div class="stat-label">Total Paid Withdrawals</div>
                 </div>
             </div>
         </div>
 
-        <!-- WITHDRAWAL TABLE -->
+        <!-- USERS EARNINGS SECTION -->
         <div class="card-glass">
-            <h4 class="mb-4"><i class="bi bi-wallet2 text-success me-2"></i>Withdrawal Requests</h4>
+            <h4 class="card-title"><i class="bi bi-people-fill text-success me-2"></i>User Earnings Breakdown</h4>
             <div class="table-responsive">
                 <table class="table table-custom">
                     <thead>
                         <tr>
-                            <th>User</th>
+                            <th>User Details</th>
+                            <th>$50 IDs</th>
+                            <th>$100 IDs</th>
+                            <th>$200 IDs</th>
+                            <th>$500 IDs</th>
+                            <th>$1000 IDs</th>
+                            <th>Total Reward</th>
+                        </tr>
+                    </thead>
+                    <tbody id="earningsTableBody">
+                        <tr><td colspan="7" class="text-center py-4 text-muted">Loading data...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- WITHDRAWAL REQUESTS SECTION -->
+        <div class="card-glass">
+            <h4 class="card-title"><i class="bi bi-wallet2 text-success me-2"></i>Withdrawal Requests</h4>
+            <div class="table-responsive">
+                <table class="table table-custom">
+                    <thead>
+                        <tr>
+                            <th>User Details</th>
                             <th>Reward Amount</th>
                             <th>Requested On</th>
                             <th>Wallet Address</th>
@@ -92,7 +149,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getDatabase, ref, onValue, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        import { getDatabase, ref, onValue, get, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDsuqsmiwIG3Ey57MR19tr_8wJQRQ3_W64",
@@ -106,106 +163,188 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
-        // 🔥 यहाँ सही आईडी डाली गई है
         const CAMPAIGN_ID = "direct_diwali_offer_2026"; 
 
+        // ✅ कॉपी फंक्शन (पूरा एड्रेस कॉपी करने के लिए)
         window.copyAddress = function(address) {
             if (!address) return;
-            navigator.clipboard.writeText(address).then(() => { alert('✅ Wallet Address Copied!'); });
+            navigator.clipboard.writeText(address).then(() => { 
+                alert('✅ Full Wallet Address Copied!'); 
+            });
         };
 
-        function loadDiwaliData() {
-            // 1. Withdrawals Listener
-            const withdrawRef = ref(db, `direct_diwali_offer_2026/withdrawals`);
-            onValue(withdrawRef, (snapshot) => {
+        // 🟢 1. Rewards / Earnings Listener (हर यूजर का डेटा)
+        function loadEarningsData() {
+            const purchasesRef = ref(db, `${CAMPAIGN_ID}/purchases`);
+            const usersRef = ref(db, "users");
+
+            onValue(purchasesRef, async (snapshot) => {
+                const tbody = document.getElementById('earningsTableBody');
+                tbody.innerHTML = '';
+                
+                if (!snapshot.exists()) {
+                    tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-muted">No earnings yet.</td></tr>';
+                    document.getElementById('totalUsers').innerText = "0";
+                    document.getElementById('totalRewardsDist').innerText = "$0.00";
+                    return;
+                }
+
+                const purchases = snapshot.val();
+                
+                // Fetch user details for names
+                const usersSnap = await get(usersRef);
+                const allUsers = usersSnap.exists() ? usersSnap.val() : {};
+
+                // Group data by Referrer
+                const groupedData = {};
+                let totalRewards = 0;
+
+                for (let pId in purchases) {
+                    const p = purchases[pId];
+                    const rUid = p.directReferrerUid;
+                    const amt = p.packageAmount || 0;
+                    const rAmt = p.rewardAmount || 0;
+
+                    if (!groupedData[rUid]) {
+                        groupedData[rUid] = { counts: {50:0, 100:0, 200:0, 500:0, 1000:0}, total: 0 };
+                    }
+                    if (groupedData[rUid].counts[amt] !== undefined) {
+                        groupedData[rUid].counts[amt]++;
+                    }
+                    groupedData[rUid].total += rAmt;
+                    totalRewards += rAmt;
+                }
+
+                // Render HTML
+                let html = '';
+                for (let uid in groupedData) {
+                    const data = groupedData[uid];
+                    const uData = allUsers[uid] || { name: 'Unknown', username: 'N/A' };
+                    
+                    html += `
+                        <tr>
+                            <td>
+                                <div class="user-info">
+                                    <span class="user-name">${uData.name || 'Unknown'}</span>
+                                    <span class="user-id">@${uData.username || uid}</span>
+                                </div>
+                            </td>
+                            <td>${data.counts[50] > 0 ? `<span class="text-info fw-bold">${data.counts[50]}x</span>` : '-'}</td>
+                            <td>${data.counts[100] > 0 ? `<span class="text-info fw-bold">${data.counts[100]}x</span>` : '-'}</td>
+                            <td>${data.counts[200] > 0 ? `<span class="text-info fw-bold">${data.counts[200]}x</span>` : '-'}</td>
+                            <td>${data.counts[500] > 0 ? `<span class="text-info fw-bold">${data.counts[500]}x</span>` : '-'}</td>
+                            <td>${data.counts[1000] > 0 ? `<span class="text-info fw-bold">${data.counts[1000]}x</span>` : '-'}</td>
+                            <td><strong class="text-success">$${data.total.toFixed(2)}</strong></td>
+                        </tr>
+                    `;
+                }
+
+                tbody.innerHTML = html;
+                document.getElementById('totalUsers').innerText = Object.keys(groupedData).length;
+                document.getElementById('totalRewardsDist').innerText = `$${totalRewards.toFixed(2)}`;
+            });
+        }
+
+        // 🟢 2. Withdrawals Listener (विड्रॉल रिक्वेस्ट)
+        function loadWithdrawalData() {
+            const withdrawRef = ref(db, `${CAMPAIGN_ID}/withdrawals`);
+            const usersRef = ref(db, "users");
+
+            onValue(withdrawRef, async (snapshot) => {
                 const tbody = document.getElementById('withdrawalTableBody');
                 tbody.innerHTML = '';
                 let pendingCount = 0;
                 let paidTotal = 0;
 
-                if (snapshot.exists()) {
-                    const data = snapshot.val();
-                    const entries = Object.values(data).sort((a, b) => b.requestedAt - a.requestedAt);
-
-                    entries.forEach(item => {
-                        if (item.status === 'pending') pendingCount++;
-                        if (item.status === 'paid' || item.status === 'approved') paidTotal += (item.amount || 0);
-
-                        const date = new Date(item.requestedAt).toLocaleString();
-                        let statusBadge = '';
-                        if(item.status === 'pending') statusBadge = '<span class="badge-pending">Pending</span>';
-                        else if(item.status === 'approved') statusBadge = '<span class="badge-approved">Approved</span>';
-                        else if(item.status === 'paid') statusBadge = '<span class="badge-approved">Paid</span>';
-                        else statusBadge = '<span class="badge-rejected">Rejected</span>';
-
-                        // Approve / Reject / Mark Paid Buttons
-                        let actionBtn = '';
-                        if (item.status === 'pending') {
-                            actionBtn = `
-                                <button class="btn btn-sm btn-success me-1" onclick="approveWithdrawal('${item.withdrawalId}')">Approve</button>
-                                <button class="btn btn-sm btn-danger" onclick="rejectWithdrawal('${item.withdrawalId}')">Reject</button>
-                            `;
-                        } else if (item.status === 'approved') {
-                            actionBtn = `<button class="btn btn-sm btn-primary" onclick="markAsPaid('${item.withdrawalId}')">Mark as Paid</button>`;
-                        } else {
-                            actionBtn = `<span class="text-success"><i class="bi bi-check-circle"></i></span>`;
-                        }
-
-                        tbody.innerHTML += `
-                            <tr>
-                                <td><strong>${item.username || 'Unknown'}</strong><br><small class="text-muted">${item.userId}</small></td>
-                                <td><strong class="text-warning">$${(item.amount || 0).toFixed(2)} USDT</strong></td>
-                                <td>${date}</td>
-                                <td>
-                                    <span class="wallet-address">${item.walletAddress}</span>
-                                    <button class="btn-copy ms-2" onclick="copyAddress('${item.walletAddress}')"><i class="bi bi-clipboard"></i> Copy</button>
-                                </td>
-                                <td>${statusBadge}</td>
-                                <td>${actionBtn}</td>
-                            </tr>
-                        `;
-                    });
-                    document.getElementById('pendingWithdrawals').innerText = pendingCount;
-                    document.getElementById('totalWithdrawn').innerText = `$${paidTotal.toFixed(2)}`;
-                } else {
+                if (!snapshot.exists()) {
                     tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-muted">No withdrawal requests found.</td></tr>';
+                    document.getElementById('pendingWithdrawals').innerText = "0";
+                    document.getElementById('totalWithdrawn').innerText = "$0.00";
+                    return;
                 }
-            });
 
-            // 2. Rewards Listener
-            const rewardsRef = ref(db, `direct_diwali_offer_2026/rewards`);
-            onValue(rewardsRef, (snapshot) => {
-                if (snapshot.exists()) {
-                    const rewards = snapshot.val();
-                    document.getElementById('totalUsers').innerText = Object.keys(rewards).length;
-                    let totalRewards = 0;
-                    for (let uid in rewards) { totalRewards += (rewards[uid].requestedAmount || 0); }
-                    document.getElementById('totalRewardsDist').innerText = `$${totalRewards.toFixed(2)}`;
-                }
+                const usersSnap = await get(usersRef);
+                const allUsers = usersSnap.exists() ? usersSnap.val() : {};
+
+                const data = snapshot.val();
+                const entries = Object.values(data).sort((a, b) => b.requestedAt - a.requestedAt);
+
+                let html = '';
+                entries.forEach(item => {
+                    if (item.status === 'pending') pendingCount++;
+                    if (item.status === 'paid' || item.status === 'approved') paidTotal += (item.amount || 0);
+
+                    const date = new Date(item.requestedAt).toLocaleString();
+                    let statusBadge = '';
+                    if(item.status === 'pending') statusBadge = '<span class="badge-pending">Pending</span>';
+                    else if(item.status === 'approved') statusBadge = '<span class="badge-approved">Approved</span>';
+                    else if(item.status === 'paid') statusBadge = '<span class="badge-approved">Paid</span>';
+                    else statusBadge = '<span class="badge-rejected">Rejected</span>';
+
+                    let actionBtn = '';
+                    if (item.status === 'pending') {
+                        actionBtn = `
+                            <button class="btn btn-sm btn-success me-1" onclick="approveWithdrawal('${item.withdrawalId}')">Approve</button>
+                            <button class="btn btn-sm btn-danger" onclick="rejectWithdrawal('${item.withdrawalId}')">Reject</button>
+                        `;
+                    } else if (item.status === 'approved') {
+                        actionBtn = `<button class="btn btn-sm btn-primary" onclick="markAsPaid('${item.withdrawalId}')">Mark as Paid</button>`;
+                    } else {
+                        actionBtn = `<span class="text-success"><i class="bi bi-check-circle"></i></span>`;
+                    }
+
+                    const uData = allUsers[item.userId] || { name: 'Unknown', username: item.username || 'N/A' };
+
+                    html += `
+                        <tr>
+                            <td>
+                                <div class="user-info">
+                                    <span class="user-name">${uData.name || 'Unknown'}</span>
+                                    <span class="user-id">@${uData.username || item.userId}</span>
+                                </div>
+                            </td>
+                            <td><strong class="text-warning">$${(item.amount || 0).toFixed(2)} USDT</strong></td>
+                            <td style="font-size:0.8rem;color:#8899bb;">${date}</td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="wallet-address" title="${item.walletAddress}">${item.walletAddress}</span>
+                                    <button class="btn-copy" onclick="copyAddress('${item.walletAddress}')"><i class="bi bi-clipboard"></i></button>
+                                </div>
+                            </td>
+                            <td>${statusBadge}</td>
+                            <td>${actionBtn}</td>
+                        </tr>
+                    `;
+                });
+
+                tbody.innerHTML = html;
+                document.getElementById('pendingWithdrawals').innerText = pendingCount;
+                document.getElementById('totalWithdrawn').innerText = `$${paidTotal.toFixed(2)}`;
             });
         }
 
-        // Actions
+        // 🟢 Actions (Approve, Reject, Mark Paid)
         window.approveWithdrawal = async function(withdrawalId) {
             if(!confirm("Are you sure you want to APPROVE this withdrawal?")) return;
-            await update(ref(db, `direct_diwali_offer_2026/withdrawals/${withdrawalId}`), { status: 'approved' });
-            await update(ref(db, `direct_diwali_offer_2026/rewards/${withdrawalId.split('_')[1] || ''}`), { status: 'approved' }); // Optional sync
+            await update(ref(db, `${CAMPAIGN_ID}/withdrawals/${withdrawalId}`), { status: 'approved' });
             alert('✅ Approved!');
         };
 
         window.rejectWithdrawal = async function(withdrawalId) {
             if(!confirm("Are you sure you want to REJECT this withdrawal?")) return;
-            await update(ref(db, `direct_diwali_offer_2026/withdrawals/${withdrawalId}`), { status: 'rejected' });
+            await update(ref(db, `${CAMPAIGN_ID}/withdrawals/${withdrawalId}`), { status: 'rejected' });
             alert('❌ Rejected!');
         };
 
         window.markAsPaid = async function(withdrawalId) {
             if(!confirm("Have you sent the USDT? Mark as PAID?")) return;
-            await update(ref(db, `direct_diwali_offer_2026/withdrawals/${withdrawalId}`), { status: 'paid', paidAt: Date.now() });
+            await update(ref(db, `${CAMPAIGN_ID}/withdrawals/${withdrawalId}`), { status: 'paid', paidAt: Date.now() });
             alert('💰 Marked as Paid!');
         };
 
-        loadDiwaliData();
+        // 🟢 Initialize Both
+        loadEarningsData();
+        loadWithdrawalData();
     </script>
 </body>
 </html>

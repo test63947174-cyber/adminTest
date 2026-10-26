@@ -10,75 +10,29 @@
     <style>
         * { font-family: 'Inter', sans-serif; }
         body { background: #080e1a; color: #f0f4ff; min-height: 100vh; }
-        
-        .navbar-custom {
-            background: rgba(8,14,26,0.95);
-            backdrop-filter: blur(20px);
-            border-bottom: 1px solid rgba(46,204,113,0.15);
-            padding: 15px 0;
-            position: sticky; top: 0; z-index: 1050;
-        }
+        .navbar-custom { background: rgba(8,14,26,0.95); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(46,204,113,0.15); padding: 15px 0; position: sticky; top: 0; z-index: 1050; }
         .navbar-custom .navbar-brand { font-weight: 800; color: #fff !important; }
-        .navbar-custom .navbar-brand i { color: #2ecc71; }
-        
         .dashboard-container { padding: 30px 20px; max-width: 1300px; margin: 0 auto; }
-        
-        .card-glass {
-            background: rgba(19,34,55,0.8);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(46,204,113,0.1);
-            border-radius: 20px;
-            padding: 1.5rem;
-            margin-bottom: 20px;
-        }
-        
-        .stat-card {
-            background: rgba(19,34,55,0.6);
-            border: 1px solid rgba(46,204,113,0.08);
-            border-radius: 16px;
-            padding: 1.5rem;
-            text-align: center;
-        }
+        .card-glass { background: rgba(19,34,55,0.8); backdrop-filter: blur(10px); border: 1px solid rgba(46,204,113,0.1); border-radius: 20px; padding: 1.5rem; margin-bottom: 20px; }
+        .stat-card { background: rgba(19,34,55,0.6); border: 1px solid rgba(46,204,113,0.08); border-radius: 16px; padding: 1.5rem; text-align: center; }
         .stat-card .stat-number { font-size: 2rem; font-weight: 800; color: #fff; }
         .stat-card .stat-label { color: #8899bb; font-size: 0.85rem; font-weight: 500; margin-top: 5px; }
-        
         .table-custom { color: #f0f4ff; border-color: #1f334f; }
         .table-custom th { border-bottom: 2px solid #2a3a5a; color: #a0b8d0; font-weight: 600; }
         .table-custom td { border-color: #1f334f; vertical-align: middle; }
-        
         .badge-pending { background: rgba(251,191,36,0.15); color: #fbbf24; padding: 5px 12px; border-radius: 20px; font-weight: 600; font-size: 0.8rem;}
         .badge-approved { background: rgba(46,204,113,0.15); color: #2ecc71; padding: 5px 12px; border-radius: 20px; font-weight: 600; font-size: 0.8rem;}
-        
-        .btn-copy {
-            background: rgba(46,204,113,0.1);
-            border: 1px solid rgba(46,204,113,0.2);
-            color: #2ecc71;
-            padding: 4px 10px;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .btn-copy:hover { background: rgba(46,204,113,0.2); transform: scale(1.05); }
-        
-        .wallet-address {
-            font-family: monospace;
-            font-size: 0.85rem;
-            color: #60a5fa;
-            background: rgba(96,165,250,0.1);
-            padding: 4px 8px;
-            border-radius: 6px;
-        }
+        .badge-rejected { background: rgba(239,68,68,0.15); color: #f87171; padding: 5px 12px; border-radius: 20px; font-weight: 600; font-size: 0.8rem;}
+        .btn-copy { background: rgba(46,204,113,0.1); border: 1px solid rgba(46,204,113,0.2); color: #2ecc71; padding: 4px 10px; border-radius: 6px; cursor: pointer; transition: all 0.2s; }
+        .wallet-address { font-family: monospace; font-size: 0.85rem; color: #60a5fa; background: rgba(96,165,250,0.1); padding: 4px 8px; border-radius: 6px; }
     </style>
 </head>
 <body>
 
-    <!-- NAVBAR -->
     <nav class="navbar navbar-custom">
         <div class="container-fluid px-4">
-            <a class="navbar-brand" href="admin.html">
-                <i class="bi bi-arrow-left me-2"></i> Back to Main Admin
-            </a>
-            <span class="text-success fw-bold"><i class="bi bi-gift me-1"></i> Diwali Direct Offer</span>
+            <a class="navbar-brand" href="index.html"><i class="bi bi-arrow-left me-2"></i> Back to Main Admin</a>
+            <span class="text-success fw-bold"><i class="bi bi-gift me-1"></i> Diwali Direct Offer Withdrawals</span>
         </div>
     </nav>
 
@@ -95,7 +49,7 @@
             <div class="col-md-3 col-6">
                 <div class="stat-card">
                     <div class="stat-number text-success" id="totalRewardsDist">$0</div>
-                    <div class="stat-label">Total Rewards Distributed</div>
+                    <div class="stat-label">Total Rewards Generated</div>
                 </div>
             </div>
             <div class="col-md-3 col-6">
@@ -128,22 +82,18 @@
                         </tr>
                     </thead>
                     <tbody id="withdrawalTableBody">
-                        <tr>
-                            <td colspan="6" class="text-center py-4 text-muted">Loading data...</td>
-                        </tr>
+                        <tr><td colspan="6" class="text-center py-4 text-muted">Loading data...</td></tr>
                     </tbody>
                 </table>
             </div>
         </div>
     </div>
 
-    <!-- SCRIPTS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getDatabase, ref, onValue, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-        // 🔥 Firebase Config
         const firebaseConfig = {
             apiKey: "AIzaSyDsuqsmiwIG3Ey57MR19tr_8wJQRQ3_W64",
             authDomain: "rwebsite-e031b.firebaseapp.com",
@@ -156,20 +106,17 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
-        const CAMPAIGN_ID = "diwali_2026";
+        // 🔥 यहाँ सही आईडी डाली गई है
+        const CAMPAIGN_ID = "direct_diwali_offer_2026"; 
 
-        // Copy to clipboard function
         window.copyAddress = function(address) {
             if (!address) return;
-            navigator.clipboard.writeText(address).then(() => {
-                alert('✅ Wallet Address Copied!');
-            });
+            navigator.clipboard.writeText(address).then(() => { alert('✅ Wallet Address Copied!'); });
         };
 
-        // Load Data from Firebase
         function loadDiwaliData() {
-            // 1. Listen to Withdrawals
-            const withdrawRef = ref(db, `direct_diwali_offer/${CAMPAIGN_ID}/withdrawals`);
+            // 1. Withdrawals Listener
+            const withdrawRef = ref(db, `direct_diwali_offer_2026/withdrawals`);
             onValue(withdrawRef, (snapshot) => {
                 const tbody = document.getElementById('withdrawalTableBody');
                 tbody.innerHTML = '';
@@ -185,28 +132,33 @@
                         if (item.status === 'paid' || item.status === 'approved') paidTotal += (item.amount || 0);
 
                         const date = new Date(item.requestedAt).toLocaleString();
-                        const statusBadge = item.status === 'pending' 
-                            ? '<span class="badge-pending">Pending</span>' 
-                            : '<span class="badge-approved">Paid/Approved</span>';
+                        let statusBadge = '';
+                        if(item.status === 'pending') statusBadge = '<span class="badge-pending">Pending</span>';
+                        else if(item.status === 'approved') statusBadge = '<span class="badge-approved">Approved</span>';
+                        else if(item.status === 'paid') statusBadge = '<span class="badge-approved">Paid</span>';
+                        else statusBadge = '<span class="badge-rejected">Rejected</span>';
 
-                        // Action button (Mark as Paid)
-                        const actionBtn = item.status === 'pending' 
-                            ? `<button class="btn btn-sm btn-success" onclick="markAsPaid('${item.withdrawalId}')">Mark Paid</button>` 
-                            : `<span class="text-success"><i class="bi bi-check-circle"></i></span>`;
+                        // Approve / Reject / Mark Paid Buttons
+                        let actionBtn = '';
+                        if (item.status === 'pending') {
+                            actionBtn = `
+                                <button class="btn btn-sm btn-success me-1" onclick="approveWithdrawal('${item.withdrawalId}')">Approve</button>
+                                <button class="btn btn-sm btn-danger" onclick="rejectWithdrawal('${item.withdrawalId}')">Reject</button>
+                            `;
+                        } else if (item.status === 'approved') {
+                            actionBtn = `<button class="btn btn-sm btn-primary" onclick="markAsPaid('${item.withdrawalId}')">Mark as Paid</button>`;
+                        } else {
+                            actionBtn = `<span class="text-success"><i class="bi bi-check-circle"></i></span>`;
+                        }
 
                         tbody.innerHTML += `
                             <tr>
-                                <td>
-                                    <strong>${item.username || 'Unknown'}</strong><br>
-                                    <small class="text-muted">${item.userId}</small>
-                                </td>
+                                <td><strong>${item.username || 'Unknown'}</strong><br><small class="text-muted">${item.userId}</small></td>
                                 <td><strong class="text-warning">$${(item.amount || 0).toFixed(2)} USDT</strong></td>
                                 <td>${date}</td>
                                 <td>
                                     <span class="wallet-address">${item.walletAddress}</span>
-                                    <button class="btn-copy ms-2" onclick="copyAddress('${item.walletAddress}')">
-                                        <i class="bi bi-clipboard"></i> Copy
-                                    </button>
+                                    <button class="btn-copy ms-2" onclick="copyAddress('${item.walletAddress}')"><i class="bi bi-clipboard"></i> Copy</button>
                                 </td>
                                 <td>${statusBadge}</td>
                                 <td>${actionBtn}</td>
@@ -220,42 +172,39 @@
                 }
             });
 
-            // 2. Listen to Rewards (For Stats)
-            const rewardsRef = ref(db, `direct_diwali_offer/${CAMPAIGN_ID}/rewards`);
+            // 2. Rewards Listener
+            const rewardsRef = ref(db, `direct_diwali_offer_2026/rewards`);
             onValue(rewardsRef, (snapshot) => {
                 if (snapshot.exists()) {
                     const rewards = snapshot.val();
-                    let totalUsers = Object.keys(rewards).length;
+                    document.getElementById('totalUsers').innerText = Object.keys(rewards).length;
                     let totalRewards = 0;
-
-                    // (Yahan hum simple calculation kar rahe hain, asli distribution user claims se hota hai)
-                    for (let uid in rewards) {
-                        totalRewards += (rewards[uid].requestedAmount || 0); // Just an estimate based on requests
-                    }
-
-                    document.getElementById('totalUsers').innerText = totalUsers;
+                    for (let uid in rewards) { totalRewards += (rewards[uid].requestedAmount || 0); }
                     document.getElementById('totalRewardsDist').innerText = `$${totalRewards.toFixed(2)}`;
                 }
             });
         }
 
-        // Mark Withdrawal as Paid
-        window.markAsPaid = async function(withdrawalId) {
-            if(!confirm("Are you sure you have sent the USDT to this wallet address?")) return;
-            
-            try {
-                // Update admin node status
-                await update(ref(db, `direct_diwali_offer/${CAMPAIGN_ID}/withdrawals/${withdrawalId}`), {
-                    status: 'paid',
-                    paidAt: Date.now()
-                });
-                alert('✅ Marked as Paid successfully!');
-            } catch(e) {
-                alert('Error: ' + e.message);
-            }
+        // Actions
+        window.approveWithdrawal = async function(withdrawalId) {
+            if(!confirm("Are you sure you want to APPROVE this withdrawal?")) return;
+            await update(ref(db, `direct_diwali_offer_2026/withdrawals/${withdrawalId}`), { status: 'approved' });
+            await update(ref(db, `direct_diwali_offer_2026/rewards/${withdrawalId.split('_')[1] || ''}`), { status: 'approved' }); // Optional sync
+            alert('✅ Approved!');
         };
 
-        // Initialize
+        window.rejectWithdrawal = async function(withdrawalId) {
+            if(!confirm("Are you sure you want to REJECT this withdrawal?")) return;
+            await update(ref(db, `direct_diwali_offer_2026/withdrawals/${withdrawalId}`), { status: 'rejected' });
+            alert('❌ Rejected!');
+        };
+
+        window.markAsPaid = async function(withdrawalId) {
+            if(!confirm("Have you sent the USDT? Mark as PAID?")) return;
+            await update(ref(db, `direct_diwali_offer_2026/withdrawals/${withdrawalId}`), { status: 'paid', paidAt: Date.now() });
+            alert('💰 Marked as Paid!');
+        };
+
         loadDiwaliData();
     </script>
 </body>

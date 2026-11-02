@@ -1,492 +1,220 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-    <title>Admin Panel - RND Staking</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <style>
-        /* ... (आपका पुराना CSS वैसा ही रहेगा, मैंने इसे शॉर्ट किया है) ... */
-        * { font-family: 'Inter', sans-serif; margin: 0; padding: 0; box-sizing: border-box; }
-        body { background: #080e1a; color: #f0f4ff; min-height: 100vh; }
-        .navbar-custom { background: rgba(8,14,26,0.95); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(46,204,113,0.15); padding: 10px 0; position: sticky; top: 0; z-index: 1050; }
-        .navbar-custom .navbar-brand { font-weight: 800; font-size: 1.2rem; color: #fff !important; }
-        .navbar-custom .navbar-brand i { color: #2ecc71; }
-        .admin-badge { background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.2); border-radius: 30px; padding: 4px 14px; font-size: 0.65rem; color: #f87171; font-weight: 600; }
-        .dashboard-container { padding: 20px; max-width: 1400px; margin: 0 auto; }
-        .card-glass { background: rgba(19,34,55,0.8); backdrop-filter: blur(10px); border: 1px solid rgba(46,204,113,0.1); border-radius: 20px; padding: 1.5rem; transition: all 0.3s ease; }
-        .card-glass:hover { border-color: rgba(46,204,113,0.3); transform: translateY(-3px); }
-        .card-glass .card-title { font-size: 1rem; font-weight: 600; color: #fff; margin-bottom: 15px; }
-        .card-glass .card-title i { color: #2ecc71; margin-right: 8px; }
-        .quick-access-btn { background: rgba(251,191,36,0.1); border: 1px solid rgba(251,191,36,0.3); color: #fbbf24; padding: 12px 20px; border-radius: 12px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 10px; transition: all 0.3s ease; }
-        .quick-access-btn:hover { background: rgba(251,191,36,0.2); color: #fff; transform: translateY(-2px); }
-        .quick-access-btn.purple { background: rgba(167,139,250,0.1); border-color: rgba(167,139,250,0.3); color: #a78bfa; }
-        .quick-access-btn.purple:hover { background: rgba(167,139,250,0.2); color: #fff; }
-        .stat-card { background: rgba(19,34,55,0.6); border: 1px solid rgba(46,204,113,0.08); border-radius: 16px; padding: 1.25rem; transition: all 0.3s ease; text-align: center; }
-        .stat-card:hover { border-color: rgba(46,204,113,0.2); transform: translateY(-3px); }
-        .stat-card .stat-icon { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; margin: 0 auto 10px; }
-        .stat-card .stat-icon.green { background: rgba(46,204,113,0.12); color: #2ecc71; }
-        .stat-card .stat-icon.blue { background: rgba(59,130,246,0.12); color: #60a5fa; }
-        .stat-card .stat-icon.orange { background: rgba(251,191,36,0.12); color: #fbbf24; }
-        .stat-card .stat-icon.red { background: rgba(239,68,68,0.12); color: #f87171; }
-        .stat-card .stat-icon.purple { background: rgba(139,92,246,0.12); color: #a78bfa; }
-        .stat-card .stat-number { font-size: 1.8rem; font-weight: 800; color: #fff; }
-        .stat-card .stat-label { color: #8899bb; font-size: 0.8rem; font-weight: 500; margin-top: 4px; }
-        .table-custom { color: #f0f4ff; border-color: #1f334f; }
-        .table-custom th { border-bottom: 2px solid #2a3a5a; color: #a0b8d0; font-weight: 600; }
-        .table-custom td { border-color: #1f334f; vertical-align: middle; }
-        .table-custom tr:hover { background: rgba(46,204,113,0.03); }
-        .btn-success-custom { background: #2ecc71; border: none; color: #0b1120; font-weight: 600; padding: 6px 16px; border-radius: 8px; transition: all 0.3s ease; font-size: 0.8rem; }
-        .btn-danger-custom { background: #ef4444; border: none; color: #fff; font-weight: 600; padding: 6px 16px; border-radius: 8px; transition: all 0.3s ease; font-size: 0.8rem; }
-        .btn-primary-custom { background: linear-gradient(135deg, #2ecc71, #27ae60); border: none; color: #fff; font-weight: 600; padding: 10px 24px; border-radius: 12px; transition: all 0.3s ease; text-decoration: none; display: inline-block; font-size: 0.9rem; }
-        .btn-copy { background: rgba(46,204,113,0.1); border: 1px solid rgba(46,204,113,0.15); color: #2ecc71; padding: 4px 12px; border-radius: 6px; font-size: 0.7rem; cursor: pointer; transition: all 0.3s ease; }
-        .badge-pending { background: rgba(251,191,36,0.15); color: #fbbf24; padding: 4px 12px; border-radius: 20px; font-weight: 500; }
-        .badge-approved { background: rgba(46,204,113,0.15); color: #2ecc71; padding: 4px 12px; border-radius: 20px; font-weight: 500; }
-        .badge-rejected { background: rgba(239,68,68,0.15); color: #f87171; padding: 4px 12px; border-radius: 20px; font-weight: 500; }
-        .nav-tabs-custom .nav-link { color: #8899bb; border: none; padding: 10px 20px; font-weight: 500; border-radius: 12px; transition: all 0.3s ease; cursor: pointer; }
-        .nav-tabs-custom .nav-link.active { color: #2ecc71; background: rgba(46,204,113,0.1); }
-        .password-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #080e1a 0%, #0f1f3a 50%, #1a2a4a 100%); display: flex; align-items: center; justify-content: center; z-index: 99999; padding: 20px; }
-        .toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; max-width: 400px; }
-        .toast-custom { background: rgba(19,34,55,0.95); backdrop-filter: blur(10px); border: 1px solid rgba(46,204,113,0.2); border-radius: 16px; padding: 16px 20px; color: #f0f4ff; box-shadow: 0 10px 40px rgba(0,0,0,0.5); display: flex; align-items: center; gap: 12px; animation: slideIn 0.4s ease; margin-bottom: 10px; }
-        .toast-custom.error { border-left: 4px solid #ef4444; }
-        .toast-custom.success { border-left: 4px solid #2ecc71; }
-        .form-control-custom { background: rgba(8,14,26,0.8) !important; border: 1px solid rgba(46,204,113,0.15) !important; color: #f0f4ff !important; padding: 12px 16px !important; border-radius: 12px !important; font-size: 0.95rem; }
-        .form-label { font-weight: 600; color: #a0b8d0; font-size: 0.9rem; margin-bottom: 6px; }
-        @media (max-width: 768px) { .dashboard-container { padding: 15px; } .stat-card .stat-number { font-size: 1.3rem; } }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>RND Staking — Admin Panel</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+<style>
+:root{--bg:#080e1a;--panel:#101d30;--line:#20334d;--muted:#91a4c2;--green:#2ecc71;--gold:#fbbf24}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:#edf3ff;font-family:Inter,system-ui,Arial,sans-serif}
+.navbar{background:#090f1c;border-bottom:1px solid var(--line);padding:14px 20px}.brand{font-weight:800;font-size:21px}.brand i{color:var(--green)}
+.wrap{max-width:1500px;margin:auto;padding:24px 18px}.panel{background:var(--panel);border:1px solid var(--line);border-radius:17px;padding:20px}
+.stat{background:#101d30;border:1px solid var(--line);border-radius:16px;padding:20px;text-align:center;height:100%}.stat .num{font-size:30px;font-weight:800}.stat .lbl{color:var(--muted);font-size:13px}
+.stat i{font-size:22px;color:var(--green)}.tabs{display:flex;gap:8px;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:12px;margin:24px 0}
+.tab{border:1px solid var(--line);background:#101d30;color:#a8bad5;border-radius:10px;padding:9px 14px}.tab.active{background:#103329;color:#38e58a;border-color:#1c694a}
+.table{color:#e8efff!important;white-space:nowrap}.table th{color:#9eb1ce!important;border-color:var(--line)!important}.table td{border-color:var(--line)!important;vertical-align:middle}.table-responsive{border-radius:12px}
+.form-control,.form-select{background:#091321!important;color:#edf3ff!important;border-color:#2a3d59!important}.form-control::placeholder{color:#7184a3}
+.muted{color:var(--muted)}.pill{border-radius:99px;padding:4px 9px;font-size:12px;background:#24334a}.ok{color:#4ade80}.bad{color:#fb7185}.warn{color:#fbbf24}
+#loginScreen{min-height:100vh;display:grid;place-items:center;padding:20px}.loginbox{width:min(430px,100%);background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:30px}
+.btn-green{background:var(--green);color:#07130c;font-weight:700;border:0}.btn-green:hover{background:#26b863;color:#07130c}
+.error{color:#fda4af;white-space:pre-wrap;font-size:13px}.empty{padding:30px;text-align:center;color:var(--muted)}
+@media(max-width:700px){.wrap{padding:14px 10px}.panel{padding:14px}.stat .num{font-size:23px}}
+</style>
 </head>
 <body>
-
-<div class="toast-container" id="toastContainer"></div>
-
-<!-- ====== PASSWORD SCREEN ====== -->
-<div class="password-screen" id="passwordScreen">
-    <div class="card-glass text-center" style="max-width: 420px; width: 100%; padding: 2.5rem;">
-        <div class="logo-text mb-3" style="font-size: 1.8rem; font-weight: 800; color: #fff;">
-            <i class="bi bi-currency-bitcoin me-2"></i>RND<span style="color: #2ecc71;">Staking</span>
-            <span class="admin-badge"><i class="bi bi-shield-lock"></i> Admin</span>
-        </div>
-        <p class="text-muted small mb-4">Enter admin credentials to access panel</p>
-        
-        <form id="loginForm">
-            <div class="mb-3">
-                <input type="email" id="adminEmail" class="form-control form-control-custom" 
-                       placeholder="Admin Email" value="admin@rndstaking.com" required>
-            </div>
-            <div class="mb-3">
-                <input type="password" id="adminPasswordInput" class="form-control form-control-custom" 
-                       placeholder="Enter password" autofocus required>
-            </div>
-            <button type="submit" class="btn-primary-custom w-100" id="loginBtn">
-                <i class="bi bi-shield-lock me-2"></i>Login
-            </button>
-        </form>
-        <div id="loginError" class="text-danger small mt-2" style="display:none;"></div>
-    </div>
+<div id="loginScreen">
+ <div class="loginbox">
+  <div class="brand mb-2"><i class="bi bi-currency-bitcoin"></i> RND Staking</div>
+  <div class="muted mb-4">Administrator sign in</div>
+  <form id="loginForm">
+   <label class="form-label">Admin email</label>
+   <input id="email" class="form-control mb-3" type="email" value="admin@rndstaking.com" autocomplete="username" required>
+   <label class="form-label">Password</label>
+   <input id="password" class="form-control mb-3" type="password" autocomplete="current-password" required>
+   <button id="loginBtn" class="btn btn-green w-100" type="submit">Login</button>
+   <div id="loginError" class="error mt-3"></div>
+  </form>
+  <div class="muted small mt-3">Only the configured Firebase admin account is allowed.</div>
+ </div>
 </div>
-
-<!-- ====== NAVBAR ====== -->
-<nav class="navbar navbar-custom" id="mainNav" style="display:none;">
-    <div class="container-fluid px-3">
-        <a class="navbar-brand fw-bold" href="#">
-            <i class="bi bi-currency-bitcoin me-2"></i>RND Staking
-            <span class="admin-badge ms-2"><i class="bi bi-shield-lock"></i> Admin Panel</span>
-        </a>
-        <div class="d-flex align-items-center gap-3">
-            <span id="dbStatus" class="db-status loading"><i class="bi bi-database"></i> Connecting...</span>
-            <span id="userEmail" class="text-muted small"></span>
-            <button class="btn btn-danger-custom btn-sm" id="logoutBtn">
-                <i class="bi bi-box-arrow-right"></i> Logout
-            </button>
-        </div>
-    </div>
-</nav>
-
-<!-- ====== ADMIN CONTENT ====== -->
-<div class="dashboard-container" id="adminContent" style="display:none;">
-    <div class="loading-spinner text-center py-5">
-        <div class="spinner-border text-success" role="status" style="width: 3rem; height: 3rem;"></div>
-        <p class="text-muted mt-3">Loading admin panel...</p>
-    </div>
+<div id="appScreen" hidden>
+ <nav class="navbar">
+  <div class="container-fluid">
+   <span class="brand"><i class="bi bi-currency-bitcoin"></i> RND Staking <span class="pill ms-2">Admin Panel</span></span>
+   <div class="d-flex align-items-center gap-3">
+    <span id="dbStatus" class="muted small">Connecting…</span><span id="who" class="muted small"></span>
+    <button id="logout" class="btn btn-sm btn-danger"><i class="bi bi-box-arrow-right"></i> Logout</button>
+   </div>
+  </div>
+ </nav>
+ <main class="wrap">
+  <div id="fatalError" class="error mb-3"></div>
+  <div class="row g-3" id="stats"></div>
+  <div class="tabs" id="tabs">
+   <button class="tab active" data-tab="dashboard">Dashboard</button>
+   <button class="tab" data-tab="users">Users</button>
+   <button class="tab" data-tab="deposits">Deposits</button>
+   <button class="tab" data-tab="withdrawals">Withdrawals</button>
+   <button class="tab" data-tab="packages">Packages</button>
+   <button class="tab" data-tab="diwali">Diwali Purchases</button>
+   <button class="tab" data-tab="diwaliWithdrawals">Diwali Withdrawals</button>
+   <button class="tab" data-tab="transfers">Transfers</button>
+   <button class="tab" data-tab="settings">Settings</button>
+  </div>
+  <section id="content" class="panel"><div class="empty">Loading database records…</div></section>
+ </main>
 </div>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 <script type="importmap">
-{
-    "imports": {
-        "firebase/app": "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js",
-        "firebase/auth": "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js",
-        "firebase/database": "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js"
-    }
-}
+{"imports":{
+ "firebase/app":"https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js",
+ "firebase/auth":"https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js",
+ "firebase/database":"https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js"
+}}
 </script>
 <script type="module">
-import { initializeApp } from "firebase/app";
-import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "firebase/auth";
-import { getDatabase, ref, get, update, set, onValue, runTransaction } from "firebase/database";
+import {initializeApp} from "firebase/app";
+import {getAuth,signInWithEmailAndPassword,signOut,onAuthStateChanged} from "firebase/auth";
+import {getDatabase,ref,onValue} from "firebase/database";
 
-// ============================================================
-// 🔥 FIREBASE CONFIG
-// ============================================================
-const firebaseConfig = {
-    apiKey: "AIzaSyDsuqsmiwIG3Ey57MR19tr_8wJQRQ3_W64",
-    authDomain: "rwebsite-e031b.firebaseapp.com",
-    databaseURL: "https://rwebsite-e031b-default-rtdb.asia-southeast1.firebasedatabase.app",
-    projectId: "rwebsite-e031b",
-    storageBucket: "rwebsite-e031b.firebasestorage.app",
-    messagingSenderId: "376966041558",
-    appId: "1:376966041558:web:02bc9062ec182590275e77",
-    measurementId: "G-0T1FREXHD3"
+const firebaseConfig={
+ apiKey:"AIzaSyDsuqsmiwIG3Ey57MR19tr_8wJQRQ3_W64",
+ authDomain:"rwebsite-e031b.firebaseapp.com",
+ databaseURL:"https://rwebsite-e031b-default-rtdb.asia-southeast1.firebasedatabase.app",
+ projectId:"rwebsite-e031b",
+ storageBucket:"rwebsite-e031b.firebasestorage.app",
+ messagingSenderId:"376966041558",
+ appId:"1:376966041558:web:02bc9062ec182590275e77"
 };
+const ADMIN_EMAIL="admin@rndstaking.com";
+const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getDatabase(app);
+const data={users:{},depositHistory:{},withdrawals:{},transferRequests:{},usedTransactions:{},purchases:{},diwaliTransactions:{},diwaliWithdrawals:{},rewards:{},claims:{},rankRewards:{},settings:{},usernames:{}};
+const errors={};const unsub=[];let activeTab="dashboard";
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getDatabase(app);
-const ADMIN_EMAIL = "admin@rndstaking.com";
-
-let currentTab = 'dashboard';
-let allUsers = {};
-let allTransactions = [];
-let allPackages = [];
-let allWithdrawals = {};
-let allDiwaliPackages = {}; // 🔥 नया: दिवाली के पैकेज ट्रैक करने के लिए
-let allSettings = { rate: 1.00 };
-let isDataLoaded = false;
-let dataListeners = {};
-let pendingWithdrawals = [];
-
-// ============================================================
-// 🔥 TOAST
-// ============================================================
-function showToast(message, type = 'success') {
-    const container = document.getElementById('toastContainer');
-    const toast = document.createElement('div');
-    toast.className = `toast-custom ${type}`;
-    const icon = type === 'success' ? 'bi-check-circle-fill text-success' : 'bi-exclamation-triangle-fill text-danger';
-    toast.innerHTML = `<i class="bi ${icon}"></i><span class="toast-msg">${message}</span>`;
-    container.appendChild(toast);
-    setTimeout(() => { toast.style.opacity = '0'; toast.style.transform = 'translateX(100%)'; setTimeout(() => toast.remove(), 300); }, 5000);
+const $=id=>document.getElementById(id);
+const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const obj=v=>v&&typeof v==="object"?v:{};
+const entries=v=>Object.entries(obj(v));
+const num=v=>Number.isFinite(Number(v))?Number(v):0;
+const money=v=>"$"+num(v).toFixed(2);
+const date=v=>{if(!v)return "—";const n=Number(v);const d=new Date(n<1e12?n*1000:n);return Number.isNaN(d.getTime())?"—":d.toLocaleString();};
+const userName=(uid)=>{const u=data.users[uid]||{};return u.name||u.username||u.email||uid||"Unknown";};
+function toastError(msg){$("fatalError").textContent=msg;}
+function stopListeners(){while(unsub.length){try{unsub.pop()();}catch{}}}
+function listen(key,path){
+ const off=onValue(ref(db,path),snap=>{
+  data[key]=snap.exists()?snap.val():{};
+  delete errors[key];$("dbStatus").textContent="Live data connected";
+  render();
+ },err=>{
+  errors[key]=err?.message||"Permission denied";
+  $("dbStatus").textContent="Some data could not load";
+  render();
+ });
+ unsub.push(off);
 }
-
-// ============================================================
-// 🔥 COPY
-// ============================================================
-window.copyAddress = function(address, label = 'Address') {
-    if (!address) { showToast('❌ No address to copy!', 'error'); return; }
-    navigator.clipboard.writeText(address).then(() => {
-        showToast(`✅ ${label} copied to clipboard!`, 'success');
-    });
-};
-
-// ============================================================
-// 🔥 AUTHENTICATION
-// ============================================================
-document.getElementById('loginForm').addEventListener('submit', async function(e) {
-    e.preventDefault();
-    const email = document.getElementById('adminEmail').value;
-    const password = document.getElementById('adminPasswordInput').value;
-    const btn = document.getElementById('loginBtn');
-    const errorDiv = document.getElementById('loginError');
-    btn.disabled = true;
-    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Logging in...';
-    errorDiv.style.display = 'none';
-    try { await signInWithEmailAndPassword(auth, email, password); } 
-    catch (error) {
-        errorDiv.style.display = 'block';
-        errorDiv.textContent = '❌ ' + error.message;
-        btn.disabled = false;
-        btn.innerHTML = '<i class="bi bi-shield-lock me-2"></i>Login';
-    }
+function startListeners(){
+ stopListeners();Object.keys(data).forEach(k=>data[k]={});Object.keys(errors).forEach(k=>delete errors[k]);
+ const paths={
+  users:"users",depositHistory:"depositHistory",withdrawals:"withdrawals",
+  transferRequests:"transferRequests",usedTransactions:"usedTransactions",
+  purchases:"direct_diwali_offer_2026/purchases",
+  diwaliTransactions:"direct_diwali_offer_2026/transactions",
+  diwaliWithdrawals:"direct_diwali_offer_2026/withdrawals",
+  rewards:"direct_diwali_offer_2026/rewards",
+  claims:"direct_diwali_offer_2026/user_claims",
+  rankRewards:"rankRewards",settings:"settings",usernames:"usernames"
+ };
+ Object.entries(paths).forEach(([k,p])=>listen(k,p));
+}
+function allUserTx(){
+ const out=[];
+ for(const [uid,u] of entries(data.users))for(const [id,t] of entries(u.transactions))out.push({id,uid,user:u,...t});
+ return out.sort((a,b)=>num(b.timestamp)-num(a.timestamp));
+}
+function allPackages(){
+ const out=[];
+ for(const [uid,u] of entries(data.users))for(const [id,p] of entries(u.packages))out.push({id,uid,user:u,...p});
+ return out.sort((a,b)=>num(b.timestamp)-num(a.timestamp));
+}
+function stat(label,value,icon){return `<div class="col-6 col-lg-3"><div class="stat"><i class="bi ${icon}"></i><div class="num">${value}</div><div class="lbl">${label}</div></div></div>`;}
+function renderStats(){
+ const us=entries(data.users).filter(([,u])=>u.role!=="admin");
+ const deposits=us.reduce((s,[,u])=>s+num(u.depositWallet),0);
+ const totalPackages=allPackages().length;
+ const rate=data.settings.rate??"—";
+ $("stats").innerHTML=[
+  stat("Total Users",us.length,"bi-people"),
+  stat("Diwali Packages",entries(data.purchases).length,"bi-gift"),
+  stat("Deposit Wallet Total",money(deposits),"bi-wallet2"),
+  stat("RND Rate",typeof rate==="number"||!Number.isNaN(Number(rate))?money(rate):esc(rate),"bi-currency-dollar")
+ ].join("");
+}
+function errNotice(keys){
+ const list=keys.filter(k=>errors[k]);
+ return list.length?`<div class="alert alert-warning">Some sections are blocked by Firebase Rules: ${list.map(k=>esc(k)+": "+esc(errors[k])).join(" | ")}. Check the admin read rules for these exact paths.</div>`:"";
+}
+function table(headers,rows){
+ if(!rows.length)return `<div class="empty">No records found.</div>`;
+ return `<div class="table-responsive"><table class="table table-hover mb-0"><thead><tr>${headers.map(h=>`<th>${h}</th>`).join("")}</tr></thead><tbody>${rows.join("")}</tbody></table></div>`;
+}
+function row(cells){return `<tr>${cells.map(c=>`<td>${c??"—"}</td>`).join("")}</tr>`;}
+function sectionTitle(t,sub=""){return `<div class="d-flex justify-content-between flex-wrap gap-2 mb-3"><div><h5 class="mb-1">${t}</h5><div class="muted small">${sub}</div></div><input id="filter" class="form-control" style="max-width:280px" placeholder="Search visible records…"></div>`;}
+function attachFilter(){const f=$("filter");if(!f)return;f.addEventListener("input",()=>{const q=f.value.toLowerCase();document.querySelectorAll("#content tbody tr").forEach(tr=>tr.hidden=!tr.textContent.toLowerCase().includes(q));});}
+function render(){
+ renderStats();
+ const tx=allUserTx(),pk=allPackages();
+ let html="";
+ if(activeTab==="dashboard"){
+  const latest=[...tx.slice(0,15).map(t=>({type:t.type||"transaction",name:userName(t.uid),amount:t.amount,status:t.status,time:t.timestamp})),
+   ...entries(data.purchases).map(([id,p])=>({type:"Diwali package",name:userName(p.buyerUid),amount:p.packageAmount,status:p.status,time:p.timestamp,id}))].sort((a,b)=>num(b.time)-num(a.time)).slice(0,25);
+  html=errNotice(["users","purchases","settings"])+`<h5 class="mb-3">Recent Activity</h5>`+table(["Type","User","Amount","Status","Date"],latest.map(x=>row([esc(x.type),esc(x.name),money(x.amount),esc(x.status),date(x.time)])));
+ }else if(activeTab==="users"){
+  const rows=entries(data.users).filter(([,u])=>u.role!=="admin").map(([uid,u])=>row([esc(u.name||"—"),esc(u.username||"—"),esc(u.email||"—"),money(u.depositWallet),money(u.referralWallet),num(u.rndWallet).toFixed(4),esc(u.rank||"—"),esc(uid)]));
+  html=errNotice(["users"])+sectionTitle("Registered Users",`${rows.length} user records`)+table(["Name","Username","Email","Deposit Wallet","Referral Wallet","RND Wallet","Rank","UID"],rows); 
+ }else if(activeTab==="deposits"){
+  const rows=entries(data.depositHistory).map(([id,x])=>row([esc(x.uid||"—"),esc(userName(x.uid)),money(x.amount),esc(x.currency||"USDT"),esc(x.status||"—"),esc(x.txHash||"—"),date(x.timestamp)]));
+  html=errNotice(["depositHistory"])+sectionTitle("Deposit History",`${rows.length} records`)+table(["UID","User","Amount","Currency","Status","Tx Hash","Date"],rows);
+ }else if(activeTab==="withdrawals"){
+  const root=entries(data.withdrawals).map(([id,w])=>({id,...w,source:"withdrawals"}));
+  const fromUsers=tx.filter(t=>t.type==="withdrawal").map(t=>({...t,source:"users"}));
+  const merged=[...root,...fromUsers].sort((a,b)=>num(b.timestamp)-num(a.timestamp));
+  html=errNotice(["withdrawals","users"])+sectionTitle("Withdrawals",`${merged.length} records · includes root withdrawals and user transaction history`)+table(["User","Amount","Wallet Type","Wallet Address","Status","Date"],merged.map(w=>row([esc(userName(w.uid||w.userId)),money(w.amount),esc(w.walletType||"—"),esc(w.wallet||w.walletAddress||"—"),esc(w.status||"—"),date(w.timestamp)])));
+ }else if(activeTab==="packages"){
+  html=errNotice(["users"])+sectionTitle("Staking Packages",`${pk.length} records`)+table(["User","Plan","USDT","Total RND","Released RND","Remaining RND","Status","Date"],pk.map(p=>row([esc(userName(p.uid)),esc(p.planName||p.planId||"Package"),money(p.usdtAmount),num(p.totalRND).toFixed(6),num(p.releasedRND).toFixed(6),num(p.remainingRND).toFixed(6),esc(p.status||"—"),date(p.timestamp||p.purchaseDate)])));
+ }else if(activeTab==="diwali"){
+  const rows=entries(data.purchases).map(([id,p])=>row([esc(p.purchaseId||id),esc(userName(p.buyerUid)),esc(p.directReferrerUid?userName(p.directReferrerUid):"—"),money(p.packageAmount),money(p.rewardAmount),esc(p.status||"—"),date(p.timestamp)]));
+  html=errNotice(["purchases","users"])+sectionTitle("Direct Offer / Diwali Purchases",`${rows.length} purchases`)+table(["Purchase ID","Buyer","Direct Referrer","Package","Reward","Status","Date"],rows);
+ }else if(activeTab==="diwaliWithdrawals"){
+  const rows=entries(data.diwaliWithdrawals).map(([id,w])=>row([esc(w.withdrawalId||id),esc(userName(w.userId)),money(w.amount),esc(w.asset||w.currency||"USDT"),esc(w.walletAddress||"—"),esc(w.status||"—"),date(w.requestedAt||w.timestamp)]));
+  html=errNotice(["diwaliWithdrawals","users"])+sectionTitle("Diwali Offer Withdrawals",`${rows.length} records`)+table(["Withdrawal ID","User","Amount","Asset","Wallet","Status","Requested"],rows);
+ }else if(activeTab==="transfers"){
+  const rows=entries(data.transferRequests).map(([id,t])=>row([esc(id),esc(t.uid||t.senderUid||"—"),esc(t.toUid||t.recipientUid||"—"),money(t.amount),esc(t.status||"—"),date(t.timestamp)]));
+  html=errNotice(["transferRequests"])+sectionTitle("Transfer Requests",`${rows.length} records`)+table(["Request ID","From UID","To UID","Amount","Status","Date"],rows);
+ }else if(activeTab==="settings"){
+  const rows=entries(data.settings).map(([k,v])=>row([esc(k),esc(typeof v==="object"?JSON.stringify(v):v)]));
+  html=errNotice(["settings"])+`<h5 class="mb-3">Settings (read only)</h5>`+table(["Setting","Value"],rows)+`<div class="muted small mt-3">This panel does not change financial settings or balances.</div>`;
+ }
+ $("content").innerHTML=html;
+ attachFilter();
+}
+document.querySelectorAll(".tab").forEach(b=>b.addEventListener("click",()=>{activeTab=b.dataset.tab;document.querySelectorAll(".tab").forEach(x=>x.classList.toggle("active",x===b));render();}));
+$("loginForm").addEventListener("submit",async e=>{
+ e.preventDefault();$("loginError").textContent="";$("loginBtn").disabled=true;$("loginBtn").textContent="Signing in…";
+ try{await signInWithEmailAndPassword(auth,$("email").value.trim(),$("password").value);}
+ catch(err){$("loginError").textContent=err.code?`${err.code}: ${err.message}`:err.message;}
+ finally{$("loginBtn").disabled=false;$("loginBtn").textContent="Login";}
 });
-
-document.getElementById('logoutBtn').addEventListener('click', async function() { await signOut(auth); });
-
-// ============================================================
-// 🔥 AUTH STATE CHANGE
-// ============================================================
-onAuthStateChanged(auth, (user) => {
-    if (user) {
-        document.getElementById('passwordScreen').style.display = 'none';
-        document.getElementById('mainNav').style.display = 'flex';
-        document.getElementById('adminContent').style.display = 'block';
-        document.getElementById('userEmail').textContent = user.email;
-        document.getElementById('dbStatus').className = 'db-status loading';
-        document.getElementById('dbStatus').innerHTML = '<i class="bi bi-database"></i> Authenticated';
-        showToast('✅ Welcome Admin!', 'success');
-        loadAdminPanel();
-    } else {
-        document.getElementById('passwordScreen').style.display = 'flex';
-        document.getElementById('mainNav').style.display = 'none';
-        document.getElementById('adminContent').style.display = 'none';
-        for (let key in dataListeners) { if (dataListeners[key]) dataListeners[key](); }
-        dataListeners = {}; allUsers = {}; allTransactions = []; allPackages = []; allDiwaliPackages = {};
-        isDataLoaded = false;
-    }
+$("logout").addEventListener("click",()=>signOut(auth));
+onAuthStateChanged(auth,async user=>{
+ if(!user){stopListeners();$("appScreen").hidden=true;$("loginScreen").hidden=false;return;}
+ if((user.email||"").toLowerCase()!==ADMIN_EMAIL.toLowerCase()){
+  await signOut(auth);$("loginError").textContent=`Access denied. Sign in with ${ADMIN_EMAIL}`;return;
+ }
+ $("loginScreen").hidden=true;$("appScreen").hidden=false;$("who").textContent=user.email;
+ $("dbStatus").textContent="Checking database permissions…";startListeners();
 });
-
-// ============================================================
-// 🔥 SETUP REALTIME LISTENERS
-// ============================================================
-function setupRealtimeListeners() {
-    for (let key in dataListeners) { if (dataListeners[key]) dataListeners[key](); }
-    dataListeners = {};
-    
-    // 1. Users
-    dataListeners.users = onValue(ref(db, 'users'), (snap) => {
-        allUsers = snap.exists() ? snap.val() : {};
-        extractTransactionsFromUsers();
-        if (isDataLoaded) renderDashboard();
-    });
-
-    // 2. Transactions
-    dataListeners.transactions = onValue(ref(db, 'transactions'), (snap) => {
-        // We use allUsers transactions primarily, but this keeps global sync
-    });
-
-    // 🔥 3. DIWALI PACKAGES (New Listener)
-    dataListeners.diwaliPackages = onValue(ref(db, 'direct_diwali_offer_2026/purchases'), (snap) => {
-        allDiwaliPackages = snap.exists() ? snap.val() : {};
-        if (isDataLoaded) renderDashboard();
-    });
-
-    // 4. Settings
-    dataListeners.settings = onValue(ref(db, 'settings'), (snap) => {
-        allSettings = snap.exists() ? snap.val() : { rate: 1.00 };
-        if (isDataLoaded) renderDashboard();
-    });
-    
-    document.getElementById('dbStatus').className = 'db-status connected';
-    document.getElementById('dbStatus').innerHTML = '<i class="bi bi-database"></i> Connected';
-}
-
-// ============================================================
-// 🔥 EXTRACT DATA
-// ============================================================
-function extractTransactionsFromUsers() {
-    allTransactions = []; allPackages = []; pendingWithdrawals = [];
-    for (let uid in allUsers) {
-        const user = allUsers[uid];
-        if (user.role === 'admin') continue;
-        const transactions = user.transactions || {};
-        for (let txId in transactions) {
-            const tx = transactions[txId];
-            allTransactions.push({ id: txId, uid: uid, user: user, ...tx });
-            if (tx.type === 'withdrawal' && tx.status === 'pending') {
-                pendingWithdrawals.push({ id: txId, uid: uid, user: user, ...tx });
-            }
-        }
-        const packages = user.packages || {};
-        for (let pkgId in packages) {
-            allPackages.push({ id: pkgId, uid: uid, user: user, ...packages[pkgId] });
-        }
-    }
-    allTransactions.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
-    allPackages.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
-}
-
-// ============================================================
-// 🔥 LOAD ADMIN PANEL
-// ============================================================
-async function loadAdminPanel() {
-    setupRealtimeListeners();
-    await new Promise((resolve) => {
-        let attempts = 0;
-        const checkData = () => {
-            attempts++;
-            if (Object.keys(allUsers).length > 0 || attempts > 10) { isDataLoaded = true; resolve(); }
-            else setTimeout(checkData, 500);
-        };
-        checkData();
-    });
-    renderDashboard();
-}
-
-// ============================================================
-// 🔥 RENDER DASHBOARD
-// ============================================================
-function renderDashboard() {
-    let totalUsers = 0, totalDepositWallet = 0, totalReferrals = 0;
-    for (let key in allUsers) {
-        const u = allUsers[key];
-        if (u.role === 'admin') continue;
-        totalUsers++; totalDepositWallet += (u.depositWallet || 0); totalReferrals += (u.totalReferrals || 0);
-    }
-    const currentRate = allSettings.rate || 1.00;
-
-    document.getElementById('adminContent').innerHTML = `
-        <div class="row g-4">
-            <div class="col-12">
-                <div class="d-flex flex-wrap justify-content-between align-items-center">
-                    <h4 class="fw-bold"><i class="bi bi-shield-lock text-success me-2"></i>Admin Dashboard</h4>
-                    <span class="text-muted small">${new Date().toLocaleString('hi-IN')}</span>
-                </div>
-                <hr class="border-secondary">
-            </div>
-
-            <!-- Quick Access Block -->
-            <div class="col-12 mb-2">
-                <div class="card-glass" style="border-color: rgba(251,191,36,0.2);">
-                    <h6 class="text-warning mb-3"><i class="bi bi-lightning-charge-fill"></i> QUICK ACCESS:</h6>
-                    <div class="d-flex flex-wrap gap-3">
-                        <a href="diwali-admin.html" class="quick-access-btn purple">
-                            <i class="bi bi-gift-fill fs-5"></i> Direct Offer (Diwali) Withdrawals
-                        </a>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Stats -->
-            <div class="col-12">
-                <div class="row g-3">
-                    <div class="col-md-3 col-6">
-                        <div class="stat-card">
-                            <div class="stat-icon green"><i class="bi bi-people"></i></div>
-                            <div class="stat-number">${totalUsers}</div>
-                            <div class="stat-label">Total Users</div>
-                        </div>
-                    </div>
-                    <div class="col-md-3 col-6">
-                        <div class="stat-card">
-                            <div class="stat-icon orange"><i class="bi bi-box-seam"></i></div>
-                            <div class="stat-number">${Object.keys(allDiwaliPackages).length}</div>
-                            <div class="stat-label">Diwali Packages Sold</div>
-                        </div>
-                    </div>
-                    <div class="col-md-3 col-6">
-                        <div class="stat-card">
-                            <div class="stat-icon purple"><i class="bi bi-wallet2"></i></div>
-                            <div class="stat-number">$${totalDepositWallet.toFixed(2)}</div>
-                            <div class="stat-label">Total Deposit Wallet</div>
-                        </div>
-                    </div>
-                    <div class="col-md-3 col-6">
-                        <div class="stat-card">
-                            <div class="stat-icon" style="background:rgba(251,191,36,0.12);color:#fbbf24;"><i class="bi bi-currency-dollar"></i></div>
-                            <div class="stat-number" style="color:#fbbf24;">$${currentRate}</div>
-                            <div class="stat-label">RND Rate</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Tabs -->
-            <div class="col-12">
-                <ul class="nav nav-tabs-custom" style="border-bottom:1px solid rgba(46,204,113,0.1);margin-bottom:20px;flex-wrap:wrap;">
-                    <li class="nav-item"><a class="nav-link ${currentTab === 'dashboard' ? 'active' : ''}" onclick="switchTab('dashboard')"><i class="bi bi-speedometer2"></i> Dashboard</a></li>
-                    <li class="nav-item"><a class="nav-link ${currentTab === 'withdrawals' ? 'active' : ''}" onclick="switchTab('withdrawals')"><i class="bi bi-arrow-up-circle"></i> Withdrawals ${pendingWithdrawals.length > 0 ? `<span class="badge bg-warning text-dark">${pendingWithdrawals.length}</span>` : ''}</a></li>
-                    <li class="nav-item"><a class="nav-link ${currentTab === 'packages' ? 'active' : ''}" onclick="switchTab('packages')"><i class="bi bi-box-seam"></i> All Packages</a></li>
-                </ul>
-            </div>
-
-            <div class="col-12">
-                ${currentTab === 'dashboard' ? renderDashboardTab() : ''}
-                ${currentTab === 'withdrawals' ? renderWithdrawalsTab() : ''}
-                ${currentTab === 'packages' ? renderPackagesTab() : ''}
-            </div>
-        </div>
-    `;
-}
-
-function renderDashboardTab() {
-    // 🔥 यहाँ हम दिवाली के पैकेज और सामान्य ट्रांजैक्शन मिलाकर Recent Activity बनाएंगे
-    let recentActivity = [];
-    
-    // Diwali Purchases
-    for(let id in allDiwaliPackages) {
-        let pkg = allDiwaliPackages[id];
-        let buyer = allUsers[pkg.buyerUid] || {name: 'Unknown'};
-        recentActivity.push({
-            type: 'diwali_package',
-            user: buyer.name,
-            amount: pkg.packageAmount,
-            status: 'completed',
-            timestamp: pkg.timestamp,
-            label: 'Diwali Package Buy'
-        });
-    }
-
-    // Normal Transactions
-    for (let tx of allTransactions.slice(0, 20)) {
-        recentActivity.push({
-            type: tx.type, user: tx.user?.name || 'Unknown', amount: tx.amount || 0,
-            status: tx.status || 'pending', timestamp: tx.timestamp || 0,
-            label: getTypeLabel(tx.type)
-        });
-    }
-
-    // Sort by newest
-    recentActivity.sort((a, b) => b.timestamp - a.timestamp);
-    recentActivity = recentActivity.slice(0, 20); // Show top 20
-
-    if (recentActivity.length === 0) return `<div class="card-glass text-center py-4 text-muted">No recent activity</div>`;
-
-    return `
-        <div class="card-glass">
-            <div class="card-title"><i class="bi bi-clock-history text-success me-2"></i>Recent Activity</div>
-            <div class="table-responsive">
-                <table class="table table-custom">
-                    <thead><tr><th>Type</th><th>User</th><th>Amount</th><th>Status</th><th>Date</th></tr></thead>
-                    <tbody>
-                        ${recentActivity.map(item => {
-                            const statusClass = item.status === 'pending' ? 'badge-pending' : 'badge-approved';
-                            const amountColor = item.type === 'withdrawal' || item.type === 'admin_debit' ? '#f87171' : '#2ecc71';
-                            const sign = item.type === 'withdrawal' || item.type === 'admin_debit' ? '-' : '+';
-                            return `
-                                <tr>
-                                    <td><i class="bi ${getTypeIcon(item.type)}" style="color:${amountColor};"></i> ${item.label}</td>
-                                    <td><strong>${item.user}</strong></td>
-                                    <td><strong style="color:${amountColor}">${sign}$${(item.amount || 0).toFixed(2)}</strong></td>
-                                    <td><span class="${statusClass}">${item.status}</span></td>
-                                    <td style="font-size:0.8rem;color:#8899bb;">${new Date(item.timestamp).toLocaleString('hi-IN')}</td>
-                                </tr>
-                            `;
-                        }).join('')}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    `;
-}
-
-function renderWithdrawalsTab() {
-    if (allTransactions.filter(t => t.type === 'withdrawal').length === 0) return `<div class="card-glass text-center py-4">No withdrawals found.</div>`;
-    let html = `<div class="card-glass"><div class="card-title"><i class="bi bi-arrow-up-circle text-success me-2"></i>Withdrawals</div><div class="table-responsive"><table class="table table-custom"><thead><tr><th>User</th><th>Amount</th><th>Wallet</th><th>Date</th><th>Status</th></tr></thead><tbody>`;
-    for (let w of allTransactions.filter(t => t.type === 'withdrawal')) {
-        html += `
-            <tr>
-                <td><strong>${w.user?.name || 'Unknown'}</strong></td>
-                <td><strong style="color:#fbbf24;">${(w.amount || 0).toFixed(2)} USDT</strong></td>
-                <td><span class="wallet-address-cell">${w.walletAddress ? w.walletAddress.substring(0,20)+'...' : 'N/A'}</span> ${w.walletAddress ? `<button class="btn-copy" onclick="copyAddress('${w.walletAddress}','Wallet')"><i class="bi bi-clipboard"></i></button>` : ''}</td>
-                <td>${new Date(w.timestamp).toLocaleString()}</td>
-                <td><span class="${w.status === 'pending' ? 'badge-pending' : 'badge-approved'}">${w.status}</span></td>
-            </tr>
-        `;
-    }
-    return html + `</tbody></table></div></div>`;
-}
-
-function renderPackagesTab() {
-    if (allPackages.length === 0) return `<div class="card-glass text-center py-4">No packages found.</div>`;
-    let html = `<div class="card-glass"><div class="card-title"><i class="bi bi-box-seam text-success me-2"></i>All Packages</div><div class="table-responsive"><table class="table table-custom"><thead><tr><th>User</th><th>Plan</th><th>Amount</th><th>Date</th></tr></thead><tbody>`;
-    for (let pkg of allPackages) {
-        html += `
-            <tr>
-                <td><strong>${pkg.user?.name || 'Unknown'}</strong></td>
-                <td>${pkg.planName || 'Package'}</td>
-                <td><strong style="color:#2ecc71;">$${(pkg.usdtAmount || 0).toFixed(2)}</strong></td>
-                <td>${new Date(pkg.timestamp).toLocaleString()}</td>
-            </tr>
-        `;
-    }
-    return html + `</tbody></table></div></div>`;
-}
-
-window.switchTab = function(tab) { currentTab = tab; renderDashboard(); };
-function getTypeLabel(type) { return type === 'diwali_package' ? 'Diwali Buy' : type; }
-function getTypeIcon(type) { return type === 'diwali_package' ? 'bi-gift-fill' : 'bi-circle'; }
-
 </script>
 </body>
 </html>

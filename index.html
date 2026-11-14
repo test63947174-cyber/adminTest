@@ -1,353 +1,495 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>RND Staking — Admin Panel</title>
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
-<style>
-:root{--bg:#080e1a;--panel:#101d30;--line:#20334d;--muted:#91a4c2;--green:#2ecc71;--gold:#fbbf24}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:#edf3ff;font-family:Inter,system-ui,Arial,sans-serif}
-.navbar{background:#090f1c;border-bottom:1px solid var(--line);padding:14px 20px}.brand{font-weight:800;font-size:21px}.brand i{color:var(--green)}
-.wrap{max-width:1600px;margin:auto;padding:24px 18px}.panel{background:var(--panel);border:1px solid var(--line);border-radius:17px;padding:20px}
-.stat{background:#101d30;border:1px solid var(--line);border-radius:16px;padding:20px;text-align:center;height:100%}.stat .num{font-size:26px;font-weight:800}.stat .lbl{color:var(--muted);font-size:13px}
-.stat i{font-size:22px;color:var(--green)}.tabs{display:flex;gap:8px;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:12px;margin:24px 0}
-.tab{border:1px solid var(--line);background:#101d30;color:#a8bad5;border-radius:10px;padding:9px 14px}.tab.active{background:#103329;color:#38e58a;border-color:#1c694a}
-.table{color:#e8efff!important;white-space:nowrap}.table th{color:#9eb1ce!important;border-color:var(--line)!important}.table td{border-color:var(--line)!important;vertical-align:middle}.table-responsive{border-radius:12px}
-.form-control,.form-select{background:#091321!important;color:#edf3ff!important;border-color:#2a3d59!important}.form-control::placeholder{color:#7184a3}
-.muted{color:var(--muted)}.pill{border-radius:99px;padding:4px 9px;font-size:12px;background:#24334a}.ok{color:#4ade80}.bad{color:#fb7185}.warn{color:#fbbf24}
-#loginScreen{min-height:100vh;display:grid;place-items:center;padding:20px}.loginbox{width:min(430px,100%);background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:30px}
-.btn-green{background:var(--green);color:#07130c;font-weight:700;border:0}.btn-green:hover{background:#26b863;color:#07130c}
-.error{color:#fda4af;white-space:pre-wrap;font-size:13px}.empty{padding:30px;text-align:center;color:var(--muted)}
-.btn-sm-action{padding:4px 10px;font-size:12px;border-radius:6px;cursor:pointer;border:1px solid transparent;margin-right:5px;transition:0.2s;}
-.btn-approve{background:rgba(46,204,113,0.2);color:#2ecc71;border-color:#2ecc71;}
-.btn-approve:hover{background:#2ecc71;color:#fff;}
-.btn-reject{background:rgba(251,113,133,0.2);color:#fb7185;border-color:#fb7185;}
-.btn-reject:hover{background:#fb7185;color:#fff;}
-.btn-copy{background:rgba(96,165,250,0.2);color:#60a5fa;border-color:#60a5fa; border-radius:6px; padding:2px 6px; font-size:11px; cursor:pointer;}
-.btn-copy:hover{background:#60a5fa;color:#fff;}
-@media(max-width:700px){.wrap{padding:14px 10px}.panel{padding:14px}.stat .num{font-size:20px}}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>Admin Panel - RND Staking</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { font-family: 'Inter', sans-serif; margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: #080e1a; color: #f0f4ff; min-height: 100vh; }
+
+        .navbar-custom {
+            background: rgba(8,14,26,0.95);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(46,204,113,0.15);
+            padding: 10px 0; position: sticky; top: 0; z-index: 1050;
+        }
+        .navbar-custom .navbar-brand { font-weight: 800; font-size: 1.2rem; color: #fff !important; }
+        .navbar-custom .navbar-brand i { color: #2ecc71; }
+        .admin-badge {
+            background: rgba(239,68,68,0.15);
+            border: 1px solid rgba(239,68,68,0.2);
+            border-radius: 30px; padding: 4px 14px;
+            font-size: 0.65rem; color: #f87171; font-weight: 600;
+        }
+
+        .dashboard-container { padding: 20px; max-width: 1400px; margin: 0 auto; }
+
+        .card-glass {
+            background: rgba(19,34,55,0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(46,204,113,0.1);
+            border-radius: 20px; padding: 1.5rem;
+            transition: all 0.3s ease;
+        }
+        .card-glass:hover { border-color: rgba(46,204,113,0.3); }
+        .card-glass .card-title { font-size: 1rem; font-weight: 600; color: #fff; margin-bottom: 15px; }
+        .card-glass .card-title i { color: #2ecc71; margin-right: 8px; }
+
+        .stat-card {
+            background: rgba(19,34,55,0.6);
+            border: 1px solid rgba(46,204,113,0.08);
+            border-radius: 16px; padding: 1.25rem;
+            transition: all 0.3s ease; text-align: center;
+        }
+        .stat-card:hover { border-color: rgba(46,204,113,0.2); transform: translateY(-3px); }
+        .stat-card .stat-icon {
+            width: 44px; height: 44px; border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.2rem; margin: 0 auto 10px;
+        }
+        .stat-card .stat-icon.green { background: rgba(46,204,113,0.12); color: #2ecc71; }
+        .stat-card .stat-icon.blue { background: rgba(59,130,246,0.12); color: #60a5fa; }
+        .stat-card .stat-icon.orange { background: rgba(251,191,36,0.12); color: #fbbf24; }
+        .stat-card .stat-icon.red { background: rgba(239,68,68,0.12); color: #f87171; }
+        .stat-card .stat-icon.purple { background: rgba(139,92,246,0.12); color: #a78bfa; }
+        .stat-card .stat-icon.teal { background: rgba(52,211,153,0.12); color: #34d399; }
+        .stat-card .stat-number { font-size: 1.8rem; font-weight: 800; color: #fff; }
+        .stat-card .stat-label { color: #8899bb; font-size: 0.8rem; font-weight: 500; margin-top: 4px; }
+
+        .table-custom { color: #f0f4ff; border-color: #1f334f; }
+        .table-custom th { border-bottom: 2px solid #2a3a5a; color: #a0b8d0; font-weight: 600; font-size: 0.8rem; }
+        .table-custom td { border-color: #1f334f; vertical-align: middle; font-size: 0.85rem; }
+        .table-custom tr:hover { background: rgba(46,204,113,0.03); }
+
+        .btn-success-custom { background: #2ecc71; border: none; color: #0b1120; font-weight: 600; padding: 6px 16px; border-radius: 8px; transition: all 0.3s ease; font-size: 0.8rem; }
+        .btn-success-custom:hover { background: #27ae60; color: #fff; transform: translateY(-1px); }
+        .btn-danger-custom { background: #ef4444; border: none; color: #fff; font-weight: 600; padding: 6px 16px; border-radius: 8px; transition: all 0.3s ease; font-size: 0.8rem; }
+        .btn-danger-custom:hover { background: #dc2626; color: #fff; transform: translateY(-1px); }
+        .btn-warning-custom { background: #fbbf24; border: none; color: #0b1120; font-weight: 600; padding: 6px 16px; border-radius: 8px; transition: all 0.3s ease; font-size: 0.8rem; }
+        .btn-warning-custom:hover { background: #f59e0b; color: #fff; transform: translateY(-1px); }
+        .btn-primary-custom {
+            background: linear-gradient(135deg, #2ecc71, #27ae60);
+            border: none; color: #fff; font-weight: 600;
+            padding: 10px 24px; border-radius: 12px;
+            transition: all 0.3s ease; text-decoration: none;
+            display: inline-block; font-size: 0.9rem;
+        }
+        .btn-primary-custom:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(46,204,113,0.3); color: #fff; }
+
+        .btn-copy {
+            background: rgba(46,204,113,0.1);
+            border: 1px solid rgba(46,204,113,0.2);
+            color: #2ecc71; padding: 4px 10px;
+            border-radius: 6px; font-size: 0.7rem;
+            cursor: pointer; transition: all 0.3s ease;
+            display: inline-flex; align-items: center; gap: 4px;
+            font-weight: 500;
+        }
+        .btn-copy:hover { background: rgba(46,204,113,0.25); transform: scale(1.05); }
+        .btn-copy.copied {
+            background: rgba(52,211,153,0.25);
+            color: #34d399;
+            border-color: rgba(52,211,153,0.4);
+        }
+
+        .badge-pending { background: rgba(251,191,36,0.15); color: #fbbf24; padding: 4px 12px; border-radius: 20px; font-weight: 500; font-size: 0.7rem; }
+        .badge-approved { background: rgba(46,204,113,0.15); color: #2ecc71; padding: 4px 12px; border-radius: 20px; font-weight: 500; font-size: 0.7rem; }
+        .badge-rejected { background: rgba(239,68,68,0.15); color: #f87171; padding: 4px 12px; border-radius: 20px; font-weight: 500; font-size: 0.7rem; }
+        .badge-active { background: rgba(46,204,113,0.15); color: #2ecc71; padding: 4px 12px; border-radius: 20px; font-weight: 500; font-size: 0.7rem; }
+        .badge-completed { background: rgba(59,130,246,0.15); color: #60a5fa; padding: 4px 12px; border-radius: 20px; font-weight: 500; font-size: 0.7rem; }
+        .badge-paid { background: rgba(52,211,153,0.15); color: #34d399; padding: 4px 12px; border-radius: 20px; font-weight: 500; font-size: 0.7rem; }
+        .badge-available { background: rgba(96,165,250,0.15); color: #60a5fa; padding: 4px 12px; border-radius: 20px; font-weight: 500; font-size: 0.7rem; }
+
+        .tab-count-badge {
+            display: inline-flex; align-items: center; justify-content: center;
+            min-width: 20px; height: 20px; padding: 0 6px;
+            border-radius: 10px; font-size: 0.68rem; font-weight: 700;
+            margin-left: 6px;
+            background: rgba(46,204,113,0.2); color: #2ecc71;
+            border: 1px solid rgba(46,204,113,0.3);
+        }
+        .tab-count-badge.pending {
+            background: rgba(251,191,36,0.2); color: #fbbf24;
+            border-color: rgba(251,191,36,0.4);
+            animation: pulseBadge 2s infinite;
+        }
+        @keyframes pulseBadge { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+
+        .search-box {
+            background: rgba(8,14,26,0.6);
+            border: 1px solid rgba(46,204,113,0.1);
+            border-radius: 12px; padding: 8px 16px;
+            color: #f0f4ff; width: 100%; max-width: 300px;
+        }
+        .search-box:focus { border-color: #2ecc71; outline: none; box-shadow: 0 0 0 3px rgba(46,204,113,0.1); }
+        .search-box::placeholder { color: #556688; }
+
+        /* USER SEARCH (TOP) */
+        .user-search-section {
+            background: linear-gradient(135deg, rgba(46,204,113,0.06), rgba(96,165,250,0.04));
+            border: 1px solid rgba(46,204,113,0.15);
+            border-radius: 20px; padding: 1.5rem; margin-bottom: 20px;
+        }
+        .user-search-section .section-title {
+            color: #fff; font-weight: 700; font-size: 1.05rem;
+            margin-bottom: 12px; display: flex; align-items: center; gap: 10px;
+        }
+        .user-search-section .section-title i { color: #2ecc71; }
+        .user-search-input-wrap { position: relative; }
+        .user-search-input-wrap .search-icon {
+            position: absolute; left: 16px; top: 50%;
+            transform: translateY(-50%); color: #556688;
+        }
+        .user-search-input-wrap input {
+            background: rgba(8,14,26,0.7);
+            border: 2px solid rgba(46,204,113,0.15);
+            border-radius: 14px; padding: 14px 16px 14px 46px;
+            color: #f0f4ff; width: 100%; font-size: 0.95rem;
+            transition: all 0.3s ease;
+        }
+        .user-search-input-wrap input:focus {
+            outline: none; border-color: #2ecc71;
+            box-shadow: 0 0 0 4px rgba(46,204,113,0.1);
+        }
+        .user-search-input-wrap input::placeholder { color: #556688; }
+
+        .search-results-list { max-height: 380px; overflow-y: auto; margin-top: 12px; padding-right: 4px; }
+        .search-result-item {
+            background: rgba(8,14,26,0.5);
+            border: 1px solid rgba(46,204,113,0.08);
+            border-radius: 14px; padding: 14px 16px;
+            margin-bottom: 10px; cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex; align-items: center; gap: 14px;
+        }
+        .search-result-item:hover {
+            border-color: rgba(46,204,113,0.35);
+            background: rgba(8,14,26,0.85); transform: translateX(4px);
+        }
+        .search-result-item .avatar-sm {
+            width: 42px; height: 42px; border-radius: 12px;
+            background: linear-gradient(135deg, #2ecc71, #27ae60);
+            color: #fff; font-weight: 700;
+            display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+        }
+        .search-result-item .info { flex: 1; min-width: 0; }
+        .search-result-item .info .name { color: #fff; font-weight: 600; font-size: 0.9rem; }
+        .search-result-item .info .meta { color: #8899bb; font-size: 0.75rem; margin-top: 2px; }
+        .search-result-item .info .referred-by {
+            color: #60a5fa; font-size: 0.72rem; margin-top: 4px;
+            display: flex; align-items: center; gap: 6px;
+        }
+        .search-result-item .info .referred-by i { color: #2ecc71; }
+        .search-result-item .arrow { color: #556688; font-size: 1.2rem; }
+
+        /* ACTIVITY FEED */
+        .activity-feed { max-height: 620px; overflow-y: auto; padding-right: 8px; }
+        .activity-feed::-webkit-scrollbar { width: 6px; }
+        .activity-feed::-webkit-scrollbar-track { background: rgba(46,204,113,0.03); border-radius: 10px; }
+        .activity-feed::-webkit-scrollbar-thumb { background: rgba(46,204,113,0.25); border-radius: 10px; }
+
+        .activity-card {
+            display: flex; align-items: flex-start; gap: 14px;
+            padding: 14px 16px; background: rgba(8,14,26,0.5);
+            border: 1px solid rgba(46,204,113,0.06);
+            border-radius: 14px; margin-bottom: 10px;
+            transition: all 0.3s ease; position: relative; overflow: hidden;
+        }
+        .activity-card:hover {
+            border-color: rgba(46,204,113,0.2);
+            background: rgba(8,14,26,0.75); transform: translateX(4px);
+        }
+        .activity-card::before {
+            content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+            width: 3px; background: #2ecc71;
+        }
+        .activity-card.type-user::before { background: #2ecc71; }
+        .activity-card.type-package::before { background: #a78bfa; }
+        .activity-card.type-deposit::before { background: #60a5fa; }
+        .activity-card.type-withdrawal::before { background: #fbbf24; }
+        .activity-card.type-direct-offer::before { background: #f59e0b; }
+        .activity-card.type-admin::before { background: #34d399; }
+        .activity-card.type-reward::before { background: #f472b6; }
+        .activity-card.type-release::before { background: #10b981; }
+
+        .activity-icon {
+            width: 42px; height: 42px; border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.15rem; flex-shrink: 0;
+        }
+        .activity-icon.type-user { background: rgba(46,204,113,0.12); color: #2ecc71; }
+        .activity-icon.type-package { background: rgba(167,139,250,0.12); color: #a78bfa; }
+        .activity-icon.type-deposit { background: rgba(96,165,250,0.12); color: #60a5fa; }
+        .activity-icon.type-withdrawal { background: rgba(251,191,36,0.12); color: #fbbf24; }
+        .activity-icon.type-direct-offer { background: rgba(245,158,11,0.12); color: #f59e0b; }
+        .activity-icon.type-admin { background: rgba(52,211,153,0.12); color: #34d399; }
+        .activity-icon.type-reward { background: rgba(244,114,182,0.12); color: #f472b6; }
+        .activity-icon.type-release { background: rgba(16,185,129,0.12); color: #10b981; }
+
+        .activity-content { flex: 1; min-width: 0; }
+        .activity-title {
+            font-weight: 600; color: #fff; font-size: 0.88rem;
+            margin-bottom: 3px; display: flex;
+            align-items: center; gap: 8px; flex-wrap: wrap;
+        }
+        .activity-desc { color: #8899bb; font-size: 0.78rem; line-height: 1.5; word-break: break-word; }
+        .activity-meta {
+            display: flex; align-items: center; gap: 12px;
+            margin-top: 6px; flex-wrap: wrap;
+            font-size: 0.7rem; color: #556688;
+        }
+        .activity-meta .rel-time { color: #2ecc71; font-weight: 600; }
+        .activity-meta .ref-id {
+            font-family: monospace; color: #60a5fa;
+            background: rgba(96,165,250,0.06);
+            padding: 1px 6px; border-radius: 4px;
+        }
+        .activity-amount { font-weight: 700; font-size: 0.85rem; }
+        .activity-amount.credit { color: #2ecc71; }
+        .activity-amount.debit { color: #f87171; }
+
+        .activity-status-badge {
+            font-size: 0.65rem; padding: 2px 10px;
+            border-radius: 20px; font-weight: 600;
+            text-transform: uppercase; letter-spacing: 0.3px;
+        }
+
+        /* FORM */
+        .form-control-custom {
+            background: rgba(8,14,26,0.8) !important;
+            border: 1px solid rgba(46,204,113,0.15) !important;
+            color: #f0f4ff !important;
+            padding: 12px 16px !important;
+            border-radius: 12px !important; font-size: 0.95rem;
+            transition: all 0.3s ease;
+        }
+        .form-control-custom:focus {
+            border-color: #2ecc71 !important;
+            box-shadow: 0 0 0 3px rgba(46,204,113,0.15) !important;
+            background: rgba(8,14,26,0.9) !important;
+        }
+        .form-control-custom::placeholder { color: #556688 !important; }
+        .form-label { font-weight: 600; color: #a0b8d0; font-size: 0.9rem; margin-bottom: 6px; }
+
+        .info-row {
+            display: flex; justify-content: space-between;
+            padding: 12px 0; border-bottom: 1px solid rgba(46,204,113,0.06);
+        }
+        .info-row .label { color: #8899bb; font-size: 0.85rem; }
+        .info-row .value { color: #f0f4ff; font-weight: 500; font-size: 0.95rem; }
+
+        .nav-tabs-custom .nav-link {
+            color: #8899bb; border: none;
+            padding: 10px 20px; font-weight: 500;
+            border-radius: 12px; transition: all 0.3s ease;
+            cursor: pointer; font-size: 0.85rem;
+            display: inline-flex; align-items: center;
+        }
+        .nav-tabs-custom .nav-link:hover { color: #fff; background: rgba(46,204,113,0.05); }
+        .nav-tabs-custom .nav-link.active { color: #2ecc71; background: rgba(46,204,113,0.1); }
+        .nav-tabs-custom .nav-link i { margin-right: 8px; }
+
+        /* ============================================================
+           🆕 QUICK NAV BUTTONS (Rank Reward + Direct Offer)
+           Dashboard के ऊपर, tabs के साथ
+           ============================================================ */
+        .quick-nav-section {
+            display: flex; flex-wrap: wrap; gap: 12px;
+            margin-bottom: 20px;
+            padding: 16px 20px;
+            background: linear-gradient(135deg, rgba(251,191,36,0.04), rgba(167,139,250,0.04));
+            border: 1px solid rgba(251,191,36,0.12);
+            border-radius: 16px;
+            align-items: center;
+        }
+        .quick-nav-label {
+            color: #8899bb; font-size: 0.78rem;
+            font-weight: 600; text-transform: uppercase;
+            letter-spacing: 0.5px; margin-right: 8px;
+        }
+        .btn-rank-reward {
+            background: linear-gradient(135deg, rgba(251,191,36,0.15), rgba(245,158,11,0.1));
+            border: 1.5px solid rgba(251,191,36,0.35);
+            color: #fbbf24; padding: 9px 20px;
+            border-radius: 12px; font-weight: 600;
+            font-size: 0.85rem; text-decoration: none;
+            display: inline-flex; align-items: center; gap: 8px;
+            transition: all 0.3s ease; white-space: nowrap;
+        }
+        .btn-rank-reward:hover {
+            background: linear-gradient(135deg, rgba(251,191,36,0.25), rgba(245,158,11,0.18));
+            border-color: #fbbf24; color: #fff;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(251,191,36,0.25);
+        }
+        .btn-direct-offer {
+            background: linear-gradient(135deg, rgba(167,139,250,0.15), rgba(139,92,246,0.1));
+            border: 1.5px solid rgba(167,139,250,0.35);
+            color: #a78bfa; padding: 9px 20px;
+            border-radius: 12px; font-weight: 600;
+            font-size: 0.85rem; text-decoration: none;
+            display: inline-flex; align-items: center; gap: 8px;
+            transition: all 0.3s ease; white-space: nowrap;
+        }
+        .btn-direct-offer:hover {
+            background: linear-gradient(135deg, rgba(167,139,250,0.25), rgba(139,92,246,0.18));
+            border-color: #a78bfa; color: #fff;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(167,139,250,0.25);
+        }
+        /* ============================================================
+           END QUICK NAV BUTTONS
+           ============================================================ */
+
+        .toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; max-width: 400px; }
+        .toast-custom {
+            background: rgba(19,34,55,0.95); backdrop-filter: blur(10px);
+            border: 1px solid rgba(46,204,113,0.2);
+            border-radius: 16px; padding: 16px 20px;
+            color: #f0f4ff; box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            display: flex; align-items: center; gap: 12px;
+            animation: slideIn 0.4s ease; margin-bottom: 10px;
+        }
+        .toast-custom.success { border-left: 4px solid #2ecc71; }
+        .toast-custom.error { border-left: 4px solid #ef4444; }
+        .toast-custom.warning { border-left: 4px solid #fbbf24; }
+        .toast-custom i { font-size: 1.5rem; }
+        .toast-custom .toast-msg { flex: 1; font-size: 0.9rem; }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+        .loading-spinner {
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center; min-height: 60vh;
+        }
+
+        .password-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(135deg, #080e1a 0%, #0f1f3a 50%, #1a2a4a 100%);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 99999; padding: 20px;
+        }
+        .password-screen .card-glass { max-width: 420px; width: 100%; padding: 2.5rem; }
+        .password-screen .logo-text { font-size: 1.8rem; font-weight: 800; color: #fff; }
+        .password-screen .logo-text span { color: #2ecc71; }
+        .password-screen .logo-text .admin-badge {
+            font-size: 0.7rem; background: rgba(239,68,68,0.15);
+            color: #f87171; padding: 4px 12px;
+            border-radius: 20px; font-weight: 600; margin-left: 8px;
+        }
+
+        .db-status {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 4px 14px; border-radius: 20px;
+            font-size: 0.7rem; font-weight: 600;
+        }
+        .db-status.connected { background: rgba(46,204,113,0.15); color: #2ecc71; }
+        .db-status.error { background: rgba(239,68,68,0.15); color: #f87171; }
+        .db-status.loading { background: rgba(251,191,36,0.15); color: #fbbf24; }
+
+        .wallet-cell { display: flex; align-items: center; gap: 6px; max-width: 260px; }
+        .wallet-cell .addr {
+            font-family: 'Courier New', monospace;
+            font-size: 0.72rem; color: #60a5fa;
+            overflow: hidden; text-overflow: ellipsis;
+            white-space: nowrap; flex: 1; min-width: 0;
+        }
+
+        .no-data { text-align: center; padding: 40px 20px; }
+        .no-data i { font-size: 3rem; color: #556688; margin-bottom: 15px; display: block; }
+        .no-data p { color: #8899bb; }
+
+        @media (max-width: 768px) {
+            .dashboard-container { padding: 15px; }
+            .search-box { max-width: 100%; }
+            .table-responsive { font-size: 0.8rem; }
+            .stat-card .stat-number { font-size: 1.3rem; }
+            .activity-card { padding: 12px; }
+            .activity-icon { width: 36px; height: 36px; font-size: 1rem; }
+            .wallet-cell { max-width: 140px; }
+            .btn-rank-reward, .btn-direct-offer {
+                padding: 8px 14px; font-size: 0.78rem;
+                flex: 1; justify-content: center;
+            }
+            .quick-nav-label { width: 100%; margin-bottom: 4px; }
+        }
+        @media (max-width: 480px) { .card-glass { padding: 1rem; } }
+    </style>
 </head>
 <body>
-<div id="loginScreen">
- <div class="loginbox">
-  <div class="brand mb-2"><i class="bi bi-currency-bitcoin"></i> RND Staking</div>
-  <div class="muted mb-4">Administrator sign in</div>
-  <form id="loginForm">
-   <label class="form-label">Admin email</label>
-   <input id="email" class="form-control mb-3" type="email" value="admin@rndstaking.com" autocomplete="username" required>
-   <label class="form-label">Password</label>
-   <input id="password" class="form-control mb-3" type="password" autocomplete="current-password" required>
-   <button id="loginBtn" class="btn btn-green w-100" type="submit">Login</button>
-   <div id="loginError" class="error mt-3"></div>
-  </form>
- </div>
-</div>
-<div id="appScreen" hidden>
- <nav class="navbar">
-  <div class="container-fluid">
-   <span class="brand"><i class="bi bi-currency-bitcoin"></i> RND Staking <span class="pill ms-2">Admin Panel</span></span>
-   <div class="d-flex align-items-center gap-3">
-    <span id="dbStatus" class="muted small">Connecting…</span><span id="who" class="muted small"></span>
-    <button id="logout" class="btn btn-sm btn-danger"><i class="bi bi-box-arrow-right"></i> Logout</button>
-   </div>
-  </div>
- </nav>
- <main class="wrap">
-  <div id="fatalError" class="error mb-3 text-warning"></div>
-  
-  <!-- Stats Row 1 -->
-  <div class="row g-3 mb-3" id="statsRow1"></div>
-  <!-- Stats Row 2 -->
-  <div class="row g-3" id="statsRow2"></div>
 
-  <div class="tabs" id="tabs">
-   <button class="tab active" data-tab="dashboard">Dashboard</button>
-   <button class="tab" data-tab="users">Users</button>
-   <button class="tab" data-tab="deposits">Deposits</button>
-   <button class="tab" data-tab="withdrawals">Withdrawals</button>
-   <button class="tab" data-tab="packages">Packages</button>
-   <button class="tab" data-tab="diwali">Diwali Purchases</button>
-   <button class="tab" data-tab="diwaliWithdrawals">Diwali Withdrawals</button>
-   <button class="tab" data-tab="transfers">Transfers</button>
-   <button class="tab" data-tab="settings">Settings</button>
-  </div>
-  <section id="content" class="panel"><div class="empty">Loading database records…</div></section>
- </main>
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- PASSWORD SCREEN -->
+<div class="password-screen" id="passwordScreen">
+    <div class="card-glass text-center">
+        <div class="logo-text mb-3">
+            <i class="bi bi-currency-bitcoin me-2"></i>RND<span>Staking</span>
+            <span class="admin-badge"><i class="bi bi-shield-lock"></i> Admin</span>
+        </div>
+        <p class="text-muted small mb-4">Enter admin credentials to access panel</p>
+
+        <form id="loginForm">
+            <div class="mb-3">
+                <input type="email" id="adminEmail" class="form-control form-control-custom"
+                       placeholder="Admin Email" value="admin@rndstaking.com" required>
+            </div>
+            <div class="mb-3">
+                <input type="password" id="adminPasswordInput" class="form-control form-control-custom"
+                       placeholder="Enter password" autofocus required>
+            </div>
+            <button type="submit" class="btn-primary-custom" id="loginBtn">
+                <i class="bi bi-shield-lock me-2"></i>Login
+            </button>
+        </form>
+        <p class="text-muted small mt-3">
+            <i class="bi bi-info-circle me-1"></i> Email: admin@rndstaking.com
+        </p>
+        <div id="loginError" class="text-danger small mt-2" style="display:none;"></div>
+    </div>
 </div>
+
+<!-- NAVBAR -->
+<nav class="navbar navbar-custom" id="mainNav" style="display:none;">
+    <div class="container-fluid px-3">
+        <a class="navbar-brand fw-bold" href="#">
+            <i class="bi bi-currency-bitcoin me-2"></i>RND Staking
+            <span class="admin-badge ms-2"><i class="bi bi-shield-lock"></i> Admin Panel</span>
+        </a>
+        <div class="d-flex align-items-center gap-3">
+            <span id="dbStatus" class="db-status loading"><i class="bi bi-database"></i> Connecting...</span>
+            <span id="userEmail" class="text-muted small"></span>
+            <button class="btn btn-danger-custom btn-sm" id="logoutBtn">
+                <i class="bi bi-box-arrow-right"></i> Logout
+            </button>
+        </div>
+    </div>
+</nav>
+
+<!-- ADMIN CONTENT -->
+<div class="dashboard-container" id="adminContent" style="display:none;">
+    <div class="loading-spinner">
+        <div class="spinner-border text-success" role="status" style="width: 3rem; height: 3rem;"></div>
+        <p class="text-muted mt-3">Loading admin panel...</p>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+
 <script type="importmap">
-{"imports":{
- "firebase/app":"https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js",
- "firebase/auth":"https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js",
- "firebase/database":"https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js"
-}}
-</script>
-<script type="module">
-import {initializeApp} from "firebase/app";
-import {getAuth,signInWithEmailAndPassword,signOut,onAuthStateChanged} from "firebase/auth";
-import {getDatabase,ref,onValue,update} from "firebase/database";
-
-const firebaseConfig={
- apiKey:"AIzaSyDsuqsmiwIG3Ey57MR19tr_8wJQRQ3_W64",
- authDomain:"rwebsite-e031b.firebaseapp.com",
- databaseURL:"https://rwebsite-e031b-default-rtdb.asia-southeast1.firebasedatabase.app",
- projectId:"rwebsite-e031b",
- storageBucket:"rwebsite-e031b.firebasestorage.app",
- messagingSenderId:"376966041558",
- appId:"1:376966041558:web:02bc9062ec182590275e77"
-};
-const ADMIN_EMAIL="admin@rndstaking.com";
-const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getDatabase(app);
-const data={users:{},depositHistory:{},withdrawals:{},transferRequests:{},usedTransactions:{},purchases:{},diwaliTransactions:{},diwaliWithdrawals:{},rewards:{},claims:{},rankRewards:{},settings:{},usernames:{}};
-const errors={};const unsub=[];let activeTab="dashboard";
-
-const $=id=>document.getElementById(id);
-const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const obj=v=>v&&typeof v==="object"?v:{};
-const entries=v=>Object.entries(obj(v));
-const num=v=>Number.isFinite(Number(v))?Number(v):0;
-const money=v=>"$"+num(v).toFixed(2);
-const date=v=>{if(!v)return "—";const n=Number(v);const d=new Date(n<1e12?n*1000:n);return Number.isNaN(d.getTime())?"—":d.toLocaleString();};
-const userName=(uid)=>{const u=data.users[uid]||{};return u.name||u.username||u.email||uid||"Unknown";};
-
-// ✅ Toast Notification
-function showToast(msg, type='success') {
-    const t = document.createElement('div');
-    t.className = `alert alert-${type === 'success' ? 'success' : 'danger'} position-fixed bottom-0 end-0 m-3`;
-    t.style.zIndex = 9999;
-    t.style.boxShadow = '0 4px 12px rgba(0,0,0,0.5)';
-    t.innerHTML = `<i class="bi bi-${type === 'success' ? 'check-circle' : 'exclamation-triangle'} me-2"></i>${msg}`;
-    document.body.appendChild(t);
-    setTimeout(() => t.remove(), 4000);
-}
-window.showToast = showToast;
-
-function stopListeners(){while(unsub.length){try{unsub.pop()();}catch{}}}
-function listen(key,path){
- const off=onValue(ref(db,path),snap=>{
-  data[key]=snap.exists()?snap.val():{};
-  delete errors[key];$("dbStatus").textContent="Live data connected";
-  render();
- },err=>{
-  errors[key]=err?.message||"Permission denied";
-  $("dbStatus").textContent="Some data could not load";
-  render();
- });
- unsub.push(off);
-}
-function startListeners(){
- stopListeners();Object.keys(data).forEach(k=>data[k]={});Object.keys(errors).forEach(k=>delete errors[k]);
- const paths={
-  users:"users",depositHistory:"depositHistory",withdrawals:"withdrawals",
-  transferRequests:"transferRequests",usedTransactions:"usedTransactions",
-  purchases:"direct_diwali_offer_2026/purchases",
-  diwaliTransactions:"direct_diwali_offer_2026/transactions",
-  diwaliWithdrawals:"direct_diwali_offer_2026/withdrawals",
-  rewards:"direct_diwali_offer_2026/rewards",
-  claims:"direct_diwali_offer_2026/user_claims",
-  rankRewards:"rankRewards",settings:"settings",usernames:"usernames"
- };
- Object.entries(paths).forEach(([k,p])=>listen(k,p));
-}
-function allUserTx(){
- const out=[];
- for(const [uid,u] of entries(data.users))for(const [id,t] of entries(u.transactions))out.push({id,uid,user:u,...t});
- return out.sort((a,b)=>num(b.timestamp)-num(a.timestamp));
-}
-function allPackages(){
- const out=[];
- for(const [uid,u] of entries(data.users))for(const [id,p] of entries(u.packages))out.push({id,uid,user:u,...p});
- return out.sort((a,b)=>num(b.timestamp)-num(a.timestamp));
-}
-
-// ✅ STATS CALCULATION FIXED
-function stat(label,value,icon){return `<div class="col-6 col-lg-3"><div class="stat"><i class="bi ${icon}"></i><div class="num">${value}</div><div class="lbl">${label}</div></div></div>`;}
-function renderStats(){
- const us=entries(data.users).filter(([,u])=>u.role!=="admin");
- const deposits=us.reduce((s,[,u])=>s+num(u.depositWallet),0);
- const rate=data.settings.rate??"—";
- 
- // Calculate Totals
- let totalStake = 0;
- let totalLockedRND = 0;
- let totalRNDWallet = 0;
- 
- const pk = allPackages();
- pk.forEach(p => {
-    if(p.status === 'active') {
-        totalStake += num(p.usdtAmount);
-        totalLockedRND += num(p.remainingRND);
-    }
- });
- 
- us.forEach(([,u]) => {
-    totalRNDWallet += num(u.rndWallet);
- });
-
- $("statsRow1").innerHTML=[
-  stat("Total Users",us.length,"bi-people"),
-  stat("Diwali Packages",entries(data.purchases).length,"bi-gift"),
-  stat("Total Stake (USDT)", money(totalStake),"bi-graph-up-arrow"),
-  stat("RND Rate",typeof rate==="number"||!Number.isNaN(Number(rate))?money(rate):esc(rate),"bi-currency-dollar")
- ].join("");
- 
- $("statsRow2").innerHTML=[
-  stat("Total Locked RND", num(totalLockedRND).toFixed(2),"bi-lock"),
-  stat("Total RND in Wallets", num(totalRNDWallet).toFixed(2),"bi-wallet2"),
-  stat("Total Deposit Balance", money(deposits),"bi-wallet2"),
-  stat("Total Withdrawals", entries(data.withdrawals).length + " Requests", "bi-arrow-up-circle")
- ].join("");
-}
-
-function errNotice(keys){
- const list=keys.filter(k=>errors[k]);
- if(!list.length) return "";
- return `<div class="alert alert-warning" style="background:#2a2010;border-color:#5a400a;color:#fbbf24">
-   <i class="bi bi-exclamation-triangle me-2"></i> Firebase Rule Error: Some tables could not load because database permissions are blocked. Please update your Firebase Rules for '${list.join(", ")}'.
- </div>`;
-}
-function table(headers,rows){
- if(!rows.length)return `<div class="empty">No records found.</div>`;
- return `<div class="table-responsive"><table class="table table-hover mb-0"><thead><tr>${headers.map(h=>`<th>${h}</th>`).join("")}</tr></thead><tbody>${rows.join("")}</tbody></table></div>`;
-}
-function row(cells){return `<tr>${cells.map(c=>`<td>${c??"—"}</td>`).join("")}</tr>`;}
-function sectionTitle(t,sub=""){return `<div class="d-flex justify-content-between flex-wrap gap-2 mb-3"><div><h5 class="mb-1">${t}</h5><div class="muted small">${sub}</div></div><input id="filter" class="form-control" style="max-width:280px" placeholder="Search visible records…"></div>`;}
-function attachFilter(){const f=$("filter");if(!f)return;f.addEventListener("input",()=>{const q=f.value.toLowerCase();document.querySelectorAll("#content tbody tr").forEach(tr=>tr.hidden=!tr.textContent.toLowerCase().includes(q));});}
-
-// ✅ COPY TO CLIPBOARD FUNCTION
-function copyToClipboard(text) {
-    navigator.clipboard.writeText(text).then(() => {
-        showToast("Address copied to clipboard!");
-    }).catch(err => {
-        showToast("Failed to copy", 'error');
-    });
-}
-window.copyToClipboard = copyToClipboard;
-
-// ✅ APPROVE / REJECT FUNCTIONS
-async function updateWithdrawalStatus(uid, txId, status, amount) {
-    if(!confirm(`Are you sure you want to mark this withdrawal as ${status.toUpperCase()}?`)) return;
-    
-    try {
-        // 1. Update Root Withdrawals
-        await update(ref(db, `withdrawals/${txId}`), {
-            status: status,
-            processedAt: Date.now()
-        });
-
-        // 2. Update User Transaction History
-        if(uid) {
-            const updates = {};
-            updates[`users/${uid}/transactions/${txId}/status`] = status;
-            await update(ref(db), updates);
-            
-            // If rejected, refund the amount to their deposit wallet (Optional but recommended)
-            if(status === 'rejected') {
-                const userSnap = await new Promise(res => onValue(ref(db, `users/${uid}/depositWallet`), s => res(s), {onlyOnce: true}));
-                const currentBal = userSnap.exists() ? num(userSnap.val()) : 0;
-                await update(ref(db, `users/${uid}`), { depositWallet: currentBal + num(amount) });
-                showToast(`Rejected & Refunded $${amount} to user.`, 'success');
-            } else {
-                showToast(`Withdrawal Approved successfully!`, 'success');
-            }
-        }
-    } catch (err) {
-        console.error(err);
-        showToast("Error updating status: " + err.message, 'error');
+{
+    "imports": {
+        "firebase/app": "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js",
+        "firebase/auth": "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js",
+        "firebase/database": "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js"
     }
 }
-window.updateWithdrawalStatus = updateWithdrawalStatus;
-
-function render(){
- renderStats();
- const tx=allUserTx(),pk=allPackages();
- let html="";
- if(activeTab==="dashboard"){
-  const latest=[...tx.slice(0,15).map(t=>({type:t.type||"transaction",name:userName(t.uid),amount:t.amount,status:t.status,time:t.timestamp})),
-   ...entries(data.purchases).map(([id,p])=>({type:"Diwali package",name:userName(p.buyerUid),amount:p.packageAmount,status:p.status,time:p.timestamp,id}))].sort((a,b)=>num(b.time)-num(a.time)).slice(0,25);
-  html=errNotice(["users","purchases","settings"])+`<h5 class="mb-3">Recent Activity</h5>`+table(["Type","User","Amount","Status","Date"],latest.map(x=>row([esc(x.type),esc(x.name),money(x.amount),esc(x.status),date(x.time)])));
- }else if(activeTab==="users"){
-  const rows=entries(data.users).filter(([,u])=>u.role!=="admin").map(([uid,u])=>row([esc(u.name||"—"),esc(u.username||"—"),esc(u.email||"—"),money(u.depositWallet),money(u.referralWallet),num(u.rndWallet).toFixed(4),esc(u.rank||"—"),esc(uid)]));
-  html=errNotice(["users"])+sectionTitle("Registered Users",`${rows.length} user records`)+table(["Name","Username","Email","Deposit Wallet","Referral Wallet","RND Wallet","Rank","UID"],rows); 
- }else if(activeTab==="deposits"){
-  const rows=entries(data.depositHistory).map(([id,x])=>row([esc(x.uid||"—"),esc(userName(x.uid)),money(x.amount),esc(x.currency||"USDT"),esc(x.status||"—"),esc(x.txHash||"—"),date(x.timestamp)]));
-  html=errNotice(["depositHistory"])+sectionTitle("Deposit History",`${rows.length} records`)+table(["UID","User","Amount","Currency","Status","Tx Hash","Date"],rows);
- }else if(activeTab==="withdrawals"){
-  const root=entries(data.withdrawals).map(([id,w])=>({id,...w,source:"withdrawals"}));
-  const fromUsers=tx.filter(t=>t.type==="withdrawal").map(t=>({...t,source:"users"}));
-  // Merge & Filter Duplicate txIds
-  const merged=[...root,...fromUsers].reduce((acc, curr) => {
-      if(!acc.find(item => item.id === curr.id)) acc.push(curr);
-      return acc;
-  }, []).sort((a,b)=>num(b.timestamp)-num(a.timestamp));
-  
-  const rows = merged.map(w => {
-      const wAddress = w.wallet || w.walletAddress || "—";
-      const uStatus = (w.status || "pending").toLowerCase();
-      let actionBtns = "";
-      
-      if(uStatus === 'pending') {
-          actionBtns = `
-             <button class="btn-sm-action btn-approve" onclick="window.updateWithdrawalStatus('${w.uid || w.userId}', '${w.id}', 'approved', ${num(w.amount)})">Approve</button>
-             <button class="btn-sm-action btn-reject" onclick="window.updateWithdrawalStatus('${w.uid || w.userId}', '${w.id}', 'rejected', ${num(w.amount)})">Reject</button>
-          `;
-      } else {
-          actionBtns = `<span class="${uStatus === 'approved' ? 'ok' : 'bad'}">${uStatus.toUpperCase()}</span>`;
-      }
-
-      return row([
-          esc(userName(w.uid || w.userId)), 
-          money(w.amount), 
-          esc(w.walletType || "USDT"),
-          `<div class="d-flex align-items-center gap-2">${esc(wAddress)} ${wAddress !== '—' ? `<button class="btn-copy" onclick="window.copyToClipboard('${esc(wAddress)}')"><i class="bi bi-clipboard"></i></button>` : ''}</div>`,
-          actionBtns, 
-          date(w.timestamp)
-      ]);
-  });
-
-  html=errNotice(["withdrawals","users"])+sectionTitle("Withdrawals",`${merged.length} records`)+table(["User","Amount","Wallet Type","Wallet Address","Action","Date"], rows);
- }else if(activeTab==="packages"){
-  html=errNotice(["users"])+sectionTitle("Staking Packages",`${pk.length} records`)+table(["User","Plan","USDT","Total RND","Released RND","Remaining RND","Status","Date"],pk.map(p=>row([esc(userName(p.uid)),esc(p.planName||p.planId||"Package"),money(p.usdtAmount),num(p.totalRND).toFixed(6),num(p.releasedRND).toFixed(6),num(p.remainingRND).toFixed(6),esc(p.status||"—"),date(p.timestamp||p.purchaseDate)])));
- }else if(activeTab==="diwali"){
-  const rows=entries(data.purchases).map(([id,p])=>row([esc(p.purchaseId||id),esc(userName(p.buyerUid)),esc(p.directReferrerUid?userName(p.directReferrerUid):"—"),money(p.packageAmount),money(p.rewardAmount),esc(p.status||"—"),date(p.timestamp)]));
-  html=errNotice(["purchases","users"])+sectionTitle("Direct Offer / Diwali Purchases",`${rows.length} purchases`)+table(["Purchase ID","Buyer","Direct Referrer","Package","Reward","Status","Date"],rows);
- }else if(activeTab==="diwaliWithdrawals"){
-  const rows=entries(data.diwaliWithdrawals).map(([id,w])=>row([esc(w.withdrawalId||id),esc(userName(w.userId)),money(w.amount),esc(w.asset||w.currency||"USDT"),esc(w.walletAddress||"—"),esc(w.status||"—"),date(w.requestedAt||w.timestamp)]));
-  html=errNotice(["diwaliWithdrawals","users"])+sectionTitle("Diwali Offer Withdrawals",`${rows.length} records`)+table(["Withdrawal ID","User","Amount","Asset","Wallet","Status","Requested"],rows);
- }else if(activeTab==="transfers"){
-  const rows=entries(data.transferRequests).map(([id,t])=>row([esc(id),esc(userName(t.senderUid||t.uid)),esc(userName(t.recipientUid||t.toUid)),money(t.amount),esc(t.status||"—"),date(t.timestamp)]));
-  html=errNotice(["transferRequests"])+sectionTitle("Transfer Requests",`${rows.length} records`)+table(["Request ID","From User","To User","Amount","Status","Date"],rows);
- }else if(activeTab==="settings"){
-  const rows=entries(data.settings).map(([k,v])=>row([esc(k),esc(typeof v==="object"?JSON.stringify(v):v)]));
-  html=errNotice(["settings"])+`<h5 class="mb-3">Settings (read only)</h5>`+table(["Setting","Value"],rows)+`<div class="muted small mt-3">This panel does not change financial settings or balances.</div>`;
- }
- $("content").innerHTML=html;
- attachFilter();
-}
-document.querySelectorAll(".tab").forEach(b=>b.addEventListener("click",()=>{activeTab=b.dataset.tab;document.querySelectorAll(".tab").forEach(x=>x.classList.toggle("active",x===b));render();}));
-$("loginForm").addEventListener("submit",async e=>{
- e.preventDefault();$("loginError").textContent="";$("loginBtn").disabled=true;$("loginBtn").textContent="Signing in…";
- try{await signInWithEmailAndPassword(auth,$("email").value.trim(),$("password").value);}
- catch(err){$("loginError").textContent=err.code?`${err.code}: ${err.message}`:err.message;}
- finally{$("loginBtn").disabled=false;$("loginBtn").textContent="Login";}
-});
-$("logout").addEventListener("click",()=>signOut(auth));
-onAuthStateChanged(auth,async user=>{
- if(!user){stopListeners();$("appScreen").hidden=true;$("loginScreen").hidden=false;return;}
- if((user.email||"").toLowerCase()!==ADMIN_EMAIL.toLowerCase()){
-  await signOut(auth);$("loginError").textContent=`Access denied. Sign in with ${ADMIN_EMAIL}`;return;
- }
- $("loginScreen").hidden=true;$("appScreen").hidden=true; 
- $("who").textContent=user.email;
- $("dbStatus").textContent="Checking database permissions…";
- 
- $("content").innerHTML = '<div class="empty">Loading data... If this takes too long, check Firebase Rules.</div>';
- 
- startListeners();
- $("appScreen").hidden=false; 
-});
 </script>
+
+<script type="module" src="admin.js"></script>
+
 </body>
 </html>

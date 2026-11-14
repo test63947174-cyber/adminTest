@@ -39,7 +39,6 @@ body { margin: 0; background: var(--bg); color: #edf3ff; min-height: 100vh; }
 .btn-sm { white-space: nowrap; }
 .error-box { white-space: pre-wrap; display: none; }
 .loading-screen { display: flex; justify-content: center; align-items: center; height: 100vh; font-size: 1.2rem; color: var(--muted); }
-.badge-tier { background: #1c3a5c; color: #8dc5ff; padding: 3px 10px; border-radius: 20px; font-size: .72rem; font-weight: 700; }
 @media (max-width: 576px) { .wrap { padding: 14px 10px; } .panel, .stat { padding: 13px; } .table-responsive > .table { min-width: 1000px; } }
 </style>
 </head>
@@ -73,7 +72,7 @@ body { margin: 0; background: var(--bg); color: #edf3ff; min-height: 100vh; }
   <main class="wrap">
     <div id="pageError" class="alert alert-warning error-box"></div>
     <div class="small-note mb-3">
-      Campaign: <strong>Bumper Referral Offer 2026</strong> · 12 Nov – 30 Nov 2026 · Live Firebase data
+      Campaign: <strong>Bumper Referral Offer 2026</strong> · Live Firebase data
     </div>
 
     <!-- Stats Row -->
@@ -81,7 +80,7 @@ body { margin: 0; background: var(--bg); color: #edf3ff; min-height: 100vh; }
       <div class="col-6 col-xl-3">
         <div class="stat">
           <div id="earningUsers" class="stat-num text-info">—</div>
-          <div class="stat-label">Referrers With Earnings</div>
+          <div class="stat-label">Total Claimed Users</div>
         </div>
       </div>
       <div class="col-6 col-xl-3">
@@ -93,7 +92,7 @@ body { margin: 0; background: var(--bg); color: #edf3ff; min-height: 100vh; }
       <div class="col-6 col-xl-3">
         <div class="stat">
           <div id="pendingCount" class="stat-num text-warning">0</div>
-          <div class="stat-label">Pending Withdrawal Requests</div>
+          <div class="stat-label">Pending Withdrawals</div>
         </div>
       </div>
       <div class="col-6 col-xl-3">
@@ -104,61 +103,27 @@ body { margin: 0; background: var(--bg); color: #edf3ff; min-height: 100vh; }
       </div>
     </div>
 
-    <!-- Package Summary -->
+    <!-- User Claims Breakdown -->
     <section class="panel">
-      <div class="section-title"><i class="bi bi-bar-chart-line text-success me-2"></i>Package & Reward Summary</div>
-      <div class="table-responsive">
-        <table class="table table-hover">
-          <thead>
-            <tr>
-              <th>Package Range</th>
-              <th>Eligible Purchase Count</th>
-              <th>Reward Per Purchase</th>
-              <th>Total Reward Earned</th>
-            </tr>
-          </thead>
-          <tbody id="tierSummary">
-            <tr><td colspan="4" class="text-center muted py-4">Loading...</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </section>
-
-    <!-- Referrer Earnings -->
-    <section class="panel">
-      <div class="section-title"><i class="bi bi-people-fill text-success me-2"></i>Direct Referrer Earnings Breakdown</div>
+      <div class="section-title"><i class="bi bi-people-fill text-success me-2"></i>Users With Claims (किसने कितना कमाया)</div>
       <div class="row g-2 mb-3">
         <div class="col-md-6">
           <input id="earningsSearch" class="form-control" placeholder="Search referrer name, username, UID...">
         </div>
-        <div class="col-md-6">
-          <select id="earningsTier" class="form-select">
-            <option value="all">All package tiers</option>
-            <option value="50">$50 – $99</option>
-            <option value="100">$100 – $199</option>
-            <option value="200">$200 – $499</option>
-            <option value="500">$500 – $999</option>
-            <option value="1000">$1,000+</option>
-          </select>
-        </div>
       </div>
       <div class="table-responsive">
         <table class="table table-hover">
           <thead>
             <tr>
-              <th>Referrer Name / Username</th>
+              <th>Referrer Name</th>
+              <th>Username</th>
               <th>Referrer UID</th>
-              <th>$50 – $99 count / reward</th>
-              <th>$100 – $199 count / reward</th>
-              <th>$200 – $499 count / reward</th>
-              <th>$500 – $999 count / reward</th>
-              <th>$1,000+ count / reward</th>
-              <th>Total Packages</th>
-              <th>Total Earned</th>
+              <th>Total Packages (Purchased by downline)</th>
+              <th>Total Reward Earned</th>
             </tr>
           </thead>
           <tbody id="earningsBody">
-            <tr><td colspan="9" class="text-center muted py-4">Loading...</td></tr>
+            <tr><td colspan="5" class="text-center muted py-4">Loading...</td></tr>
           </tbody>
         </table>
       </div>
@@ -188,7 +153,7 @@ body { margin: 0; background: var(--bg); color: #edf3ff; min-height: 100vh; }
               <th>User</th>
               <th>User UID</th>
               <th>Amount</th>
-              <th>Requested</th>
+              <th>Requested At</th>
               <th>Full USDT Wallet Address</th>
               <th>Status</th>
               <th>Admin Actions</th>
@@ -206,7 +171,7 @@ body { margin: 0; background: var(--bg); color: #edf3ff; min-height: 100vh; }
 <script type="module">
 import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { getDatabase, ref, get, onValue, update, runTransaction } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+import { getDatabase, ref, get, onValue, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
 // 🔥 LIVE FIREBASE CONFIG (R Website)
 const firebaseConfig = {
@@ -224,13 +189,10 @@ const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getDatabase(app);
 const CAMPAIGN_ID = "bumper_referral_offer_2026";
-const TIERS = { 50: 10, 100: 15, 200: 30, 500: 70, 1000: 200 };
-const TIER_LABELS = { 50: "$50 – $99", 100: "$100 – $199", 200: "$200 – $499", 500: "$500 – $999", 1000: "$1,000+" };
 
 let allUsers = {};
 let purchases = {};
 let withdrawals = {};
-let rewards = {};
 let listenersStarted = false;
 
 const $ = id => document.getElementById(id);
@@ -266,11 +228,6 @@ function startListeners() {
     withdrawals = snapshot.val() || {};
     renderAll();
   }, error => showError("pageError", "Could not read withdrawals: " + error.message));
-
-  onValue(ref(db, `${CAMPAIGN_ID}/rewards`), snapshot => {
-    rewards = snapshot.val() || {};
-    renderAll();
-  }, error => console.warn("rewards read error:", error));
 }
 
 function showError(id, message) {
@@ -286,28 +243,22 @@ function displayName(uid, fallback = "") {
   return user.name || user.fullName || user.username || fallback || "Unknown user";
 }
 
-function validTier(amount) {
-  return Object.prototype.hasOwnProperty.call(TIERS, String(Number(amount)));
-}
-
 function purchaseRows() {
   return Object.entries(purchases)
     .map(([id, p]) => ({ id, ...(p || {}) }))
-    .filter(p => p.directReferrerUid && validTier(p.packageAmount) && p.status !== "rejected");
+    .filter(p => p.directReferrerUid && p.status !== "rejected");
 }
 
 function earningsByReferrer() {
   const groups = {};
   for (const p of purchaseRows()) {
     const uid = String(p.directReferrerUid);
-    const tier = Number(p.packageAmount);
-    const reward = Number(p.rewardAmount) || TIERS[tier];
+    const amt = Number(p.packageAmount) || 0;
+    const reward = Number(p.rewardAmount) || 0; // ✅ यहाँ सीधा Firebase से आया रिवॉर्ड इस्तेमाल होगा
 
     if (!groups[uid]) {
-      groups[uid] = { uid, counts: {50:0, 100:0, 200:0, 500:0, 1000:0}, rewards: {50:0, 100:0, 200:0, 500:0, 1000:0}, total: 0, packages: 0 };
+      groups[uid] = { uid, total: 0, packages: 0 };
     }
-    groups[uid].counts[tier]++;
-    groups[uid].rewards[tier] += reward;
     groups[uid].total += reward;
     groups[uid].packages++;
   }
@@ -317,28 +268,11 @@ function earningsByReferrer() {
 function renderAll() {
   const rows = purchaseRows();
   const groups = earningsByReferrer();
-  const tierCounts = {50:0, 100:0, 200:0, 500:0, 1000:0};
-  const tierRewards = {50:0, 100:0, 200:0, 500:0, 1000:0};
-
-  rows.forEach(p => {
-    const tier = Number(p.packageAmount);
-    tierCounts[tier]++;
-    tierRewards[tier] += Number(p.rewardAmount) || TIERS[tier];
-  });
-
-  const totalReward = Object.values(tierRewards).reduce((a, b) => a + b, 0);
+  
+  const totalReward = rows.reduce((sum, p) => sum + (Number(p.rewardAmount) || 0), 0);
 
   $("earningUsers").textContent = groups.length.toLocaleString();
   $("rewardsGenerated").textContent = money(totalReward);
-
-  $("tierSummary").innerHTML = Object.keys(TIERS).map(t => `
-    <tr>
-      <td><strong>${TIER_LABELS[t]}</strong></td>
-      <td>${tierCounts[t]}</td>
-      <td>${money(TIERS[t])}</td>
-      <td class="text-success fw-bold">${money(tierRewards[t])}</td>
-    </tr>
-  `).join("");
 
   renderEarnings(groups);
   renderWithdrawals();
@@ -347,26 +281,24 @@ function renderAll() {
 
 function renderEarnings(groups) {
   const query = $("earningsSearch").value.trim().toLowerCase();
-  const tier = $("earningsTier").value;
   const filtered = groups.filter(g => {
     const user = getUser(g.uid);
     const hay = [g.uid, user.name, user.fullName, user.username].join(" ").toLowerCase();
-    return (!query || hay.includes(query)) && (tier === "all" || g.counts[Number(tier)] > 0);
+    return (!query || hay.includes(query));
   });
 
   $("earningsBody").innerHTML = filtered.length ? filtered.map(g => {
     const user = getUser(g.uid);
-    const cell = t => `${g.counts[t]} <span class="muted">/ ${money(g.rewards[t])}</span>`;
     return `
       <tr>
-        <td><strong>${esc(displayName(g.uid))}</strong><div class="muted">${esc(user.username || "")}</div></td>
+        <td><strong>${esc(displayName(g.uid))}</strong></td>
+        <td>${esc(user.username || "—")}</td>
         <td class="mono">${esc(g.uid)}</td>
-        <td>${cell(50)}</td><td>${cell(100)}</td><td>${cell(200)}</td><td>${cell(500)}</td><td>${cell(1000)}</td>
-        <td>${g.packages}</td>
-        <td class="text-success fw-bold">${money(g.total)}</td>
+        <td><span class="badge bg-secondary">${g.packages}</span></td>
+        <td class="text-success fw-bold fs-6">${money(g.total)}</td>
       </tr>
     `;
-  }).join("") : `<tr><td colspan="9" class="text-center muted py-4">No matching earning users.</td></tr>`;
+  }).join("") : `<tr><td colspan="5" class="text-center muted py-4">No matching users found.</td></tr>`;
 }
 
 function renderWithdrawals() {
@@ -438,14 +370,9 @@ async function syncWithdrawalStatus(withdrawalId, newStatus) {
   if (newStatus === "paid") updates[`${CAMPAIGN_ID}/withdrawals/${withdrawalId}/paidAt`] = now;
 
   // 2) Campaign rewards lock (user page reads this for currentStatus)
-  if (uid) {
-    const r = rewards[uid] || {};
-    if (r.withdrawalId === withdrawalId || r.status === "pending" || r.status === "approved") {
-      updates[`${CAMPAIGN_ID}/rewards/${uid}/status`] = newStatus;
-      updates[`${CAMPAIGN_ID}/rewards/${uid}/updatedAt`] = now;
-      if (newStatus === "paid") updates[`${CAMPAIGN_ID}/rewards/${uid}/paidAt`] = now;
-    }
-  }
+  updates[`${CAMPAIGN_ID}/rewards/${uid}/status`] = newStatus;
+  updates[`${CAMPAIGN_ID}/rewards/${uid}/updatedAt`] = now;
+  if (newStatus === "paid") updates[`${CAMPAIGN_ID}/rewards/${uid}/paidAt`] = now;
 
   // 3) User offer_transactions + campaign transactions
   try {

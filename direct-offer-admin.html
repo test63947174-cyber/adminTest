@@ -7,6 +7,7 @@
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎁</text></svg>">
 <style>
 :root { color-scheme: dark; --bg: #080e1a; --panel: #132237; --line: #263b58; --muted: #93a4bd; }
 * { box-sizing: border-box; font-family: Inter, system-ui, sans-serif; }
@@ -37,17 +38,20 @@ body { margin: 0; background: var(--bg); color: #edf3ff; min-height: 100vh; }
 .status-failed { background: #3a2b2b; color: #ffb3b3; }
 .form-control, .form-select { background: #0c1728; color: #edf3ff; border-color: #304560; }
 .form-control:focus, .form-select:focus { background: #0c1728; color: white; border-color: #4b91e2; box-shadow: none; }
+.form-control::placeholder { color: #6f829f; }
 .btn-sm { white-space: nowrap; }
 .error-box { white-space: pre-wrap; display: none; }
-.loading-screen { display: flex; justify-content: center; align-items: center; height: 100vh; font-size: 1.2rem; color: var(--muted); }
+.auth-screen { display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 16px; color: var(--muted); }
+.auth-box { width: 100%; max-width: 440px; background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 26px; color: #edf3ff; }
 .badge-soft { background: #1c2f49; color: #b9c8df; font-weight: 600; }
-@media (max-width: 576px) { .wrap { padding: 14px 10px; } .panel, .stat { padding: 13px; } .table-responsive > .table { min-width: 1200px; } }
+@media (max-width: 576px) { .wrap { padding: 14px 10px; } .panel, .stat { padding: 13px; } }
 </style>
 </head>
 <body>
 
-<div id="loadingScreen" class="loading-screen">
-  <div class="text-center">
+<!-- AUTH SCREEN (loading / login / access denied) -->
+<div id="authScreen" class="auth-screen">
+  <div id="authBox" class="auth-box text-center">
     <div class="spinner-border text-success mb-3" role="status"></div>
     <div>Checking authentication...</div>
   </div>
@@ -62,10 +66,17 @@ body { margin: 0; background: var(--bg); color: #edf3ff; min-height: 100vh; }
       <div class="fw-bold text-success">
         <i class="bi bi-gift me-2"></i>Bumper Referral Offer Admin
       </div>
-      <div class="d-flex align-items-center gap-2">
+      <div class="d-flex align-items-center gap-2 flex-wrap">
+        <span id="adminEmail" class="small-note"></span>
         <span id="liveStatus" class="small-note">Connecting...</span>
+        <button id="repairBtn" class="btn btn-outline-warning btn-sm" title="Purane processed withdrawals ke stuck user locks fix karta hai">
+          <i class="bi bi-wrench me-1"></i>Repair Locks
+        </button>
         <button id="refreshBtn" class="btn btn-outline-info btn-sm">
           <i class="bi bi-arrow-clockwise me-1"></i>Refresh
+        </button>
+        <button id="logoutBtn" class="btn btn-outline-danger btn-sm">
+          <i class="bi bi-box-arrow-right me-1"></i>Logout
         </button>
       </div>
     </div>
@@ -172,8 +183,8 @@ body { margin: 0; background: var(--bg); color: #edf3ff; min-height: 100vh; }
 
 <script type="module">
 import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { getDatabase, ref, onValue, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { getDatabase, ref, get, onValue, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
 // 🔴 TESTING FIREBASE (rwebsite-e031b)
 const firebaseConfig = {
@@ -190,47 +201,126 @@ const firebaseConfig = {
 const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getDatabase(app);
-const CAMPAIGN_ID = "bumper_referral_offer_2026";
 
-let allUsers = {};
+const CAMPAIGN_ID = "bumper_referral_offer_2026";
+const P = CAMPAIGN_ID;
+const ADMIN_EMAIL = "admin@rndstaking.com";   // rules me bhi yahi email admin hai
+
 let purchases = {};
 let withdrawals = {};
-let listenersStarted = false;
+let userCache = {};            // uid -> { name, username, email }
+const userFetching = new Set();
+let unsubs = [];
+let gotPurchases = false, gotWithdrawals = false;
+let isBusy = false;
 
 const $ = id => document.getElementById(id);
 const money = n => "$" + (Number(n) || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const esc = value => String(value ?? "").replace(/[&<>"']/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch]));
 const fmtDate = ms => ms ? new Date(Number(ms)).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" }) : "—";
+const statusOf = w => String(w.status || "pending").toLowerCase();
 
-onAuthStateChanged(auth, (user) => {
-  if (user) {
-    $("loadingScreen").style.display = "none";
+// ============================================================
+// AUTH SCREENS
+// ============================================================
+function showAuth(html) {
+  $("mainContent").style.display = "none";
+  $("authScreen").style.display = "flex";
+  $("authBox").innerHTML = html;
+}
+
+function showLogin(message = "") {
+  showAuth(`
+    <h5 class="fw-bold mb-1"><i class="bi bi-shield-lock text-success me-2"></i>Admin Login</h5>
+    <div class="small-note mb-3">Sirf admin account se login karein.</div>
+    ${message ? `<div class="alert alert-danger py-2 small">${esc(message)}</div>` : ""}
+    <form id="loginForm" class="text-start">
+      <input id="loginEmail" type="email" class="form-control mb-2" placeholder="Admin email" autocomplete="username" required>
+      <input id="loginPassword" type="password" class="form-control mb-3" placeholder="Password" autocomplete="current-password" required>
+      <button id="loginBtn" class="btn btn-success w-100" type="submit">Login</button>
+    </form>`);
+
+  $("loginForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const btn = $("loginBtn");
+    btn.disabled = true;
+    btn.textContent = "Logging in...";
+    try {
+      await signInWithEmailAndPassword(auth, $("loginEmail").value.trim(), $("loginPassword").value);
+    } catch (err) {
+      showLogin("Login failed: " + (err.code || err.message));
+    }
+  });
+}
+
+function showDenied(user, role, extra = "") {
+  showAuth(`
+    <h5 class="fw-bold text-danger mb-2"><i class="bi bi-x-octagon me-2"></i>Access Denied</h5>
+    <div class="small mb-3">Ye account <strong>admin nahi</strong> hai, isliye Approve / Reject / Paid kaam nahi karega (PERMISSION_DENIED).</div>
+    <div class="text-start small p-3 mb-3" style="background:#0c1728;border:1px solid var(--line);border-radius:10px;">
+      <div>Email: <span class="mono">${esc(user.email || "—")}</span></div>
+      <div>UID: <span class="mono">${esc(user.uid)}</span></div>
+      <div>Role: <span class="mono">${esc(role || "(none)")}</span></div>
+      ${extra ? `<div class="text-warning mt-2">${esc(extra)}</div>` : ""}
+    </div>
+    <div class="small-note text-start mb-3">
+      Fix: Firebase Console → Realtime Database (rwebsite-e031b) → <span class="mono">users / ${esc(user.uid)} / role</span> = <span class="mono">admin</span>
+      set karein, ya <span class="mono">${esc(ADMIN_EMAIL)}</span> account se login karein.
+    </div>
+    <button id="deniedLogout" class="btn btn-outline-light w-100">Logout &amp; login with admin</button>`);
+  $("deniedLogout").addEventListener("click", () => signOut(auth));
+}
+
+async function checkAdmin(user) {
+  if ((user.email || "").toLowerCase() === ADMIN_EMAIL) return { ok: true, role: "admin (email)" };
+  const snap = await get(ref(db, `users/${user.uid}/role`));
+  const role = snap.exists() ? String(snap.val()) : "";
+  return { ok: role === "admin", role };
+}
+
+onAuthStateChanged(auth, async (user) => {
+  stopListeners();
+  if (!user) { showLogin(); return; }
+
+  showAuth(`<div class="spinner-border text-success mb-3" role="status"></div><div>Checking admin access...</div>`);
+  try {
+    const { ok, role } = await checkAdmin(user);
+    if (!ok) { showDenied(user, role); return; }
+    $("authScreen").style.display = "none";
     $("mainContent").style.display = "block";
+    $("adminEmail").textContent = user.email || user.uid;
     startListeners();
-  } else {
-    $("loadingScreen").innerHTML = `<div class="text-danger text-center px-3">Access Denied. Please login through the main admin panel.</div>`;
+  } catch (err) {
+    showDenied(user, "", "Role check failed: " + err.message);
   }
 });
 
+$("logoutBtn")?.addEventListener("click", () => signOut(auth));
+
+// ============================================================
+// LISTENERS  (sirf campaign ka data; poora `users` node NAHI)
+// ============================================================
 function startListeners() {
-  if (listenersStarted) return;
-  listenersStarted = true;
+  stopListeners();
+  gotPurchases = gotWithdrawals = false;
   $("liveStatus").textContent = "Connecting...";
 
-  onValue(ref(db, "users"), snapshot => {
-    allUsers = snapshot.val() || {};
-    renderAll();
-  }, error => showError("Could not read users: " + error.message));
-
-  onValue(ref(db, `${CAMPAIGN_ID}/purchases`), snapshot => {
+  unsubs.push(onValue(ref(db, `${P}/purchases`), snapshot => {
     purchases = snapshot.val() || {};
+    gotPurchases = true;
     renderAll();
-  }, error => showError("Could not read purchases: " + error.message));
+  }, error => showError("Could not read purchases: " + error.message)));
 
-  onValue(ref(db, `${CAMPAIGN_ID}/withdrawals`), snapshot => {
+  unsubs.push(onValue(ref(db, `${P}/withdrawals`), snapshot => {
     withdrawals = snapshot.val() || {};
+    gotWithdrawals = true;
     renderAll();
-  }, error => showError("Could not read withdrawals: " + error.message));
+  }, error => showError("Could not read withdrawals: " + error.message)));
+}
+
+function stopListeners() {
+  unsubs.forEach(fn => { try { fn(); } catch (e) { /* ignore */ } });
+  unsubs = [];
 }
 
 function showError(message) {
@@ -239,13 +329,43 @@ function showError(message) {
   el.textContent = message;
 }
 
-function getUser(uid) { return allUsers[uid] || {}; }
+// ============================================================
+// USER NAMES - sirf zarurat wale users (chhote fields)
+// ============================================================
+async function ensureNames(uids) {
+  const need = [...new Set(uids)].filter(u => u && !userCache[u] && !userFetching.has(u));
+  if (!need.length) return;
+  need.forEach(u => userFetching.add(u));
+
+  for (let i = 0; i < need.length; i += 8) {
+    const batch = need.slice(i, i + 8);
+    await Promise.all(batch.map(async uid => {
+      try {
+        const fields = ["name", "username", "email"];
+        const snaps = await Promise.all(fields.map(f => get(ref(db, `users/${uid}/${f}`))));
+        const obj = {};
+        fields.forEach((f, idx) => { obj[f] = snaps[idx].exists() ? snaps[idx].val() : ""; });
+        userCache[uid] = obj;
+      } catch (e) {
+        userCache[uid] = {};
+      } finally {
+        userFetching.delete(uid);
+      }
+    }));
+  }
+  renderAll();
+}
+
+function getUser(uid) { return userCache[uid] || {}; }
 
 function displayName(uid, fallback = "") {
   const user = getUser(uid);
-  return user.name || user.fullName || user.username || fallback || "Unknown user";
+  return user.name || user.username || fallback || "Unknown user";
 }
 
+// ============================================================
+// DATA HELPERS
+// ============================================================
 function purchaseRows() {
   return Object.entries(purchases)
     .map(([id, p]) => ({ id, ...(p || {}) }))
@@ -266,6 +386,9 @@ function earningsByReferrer() {
   return Object.values(groups).sort((a, b) => b.total - a.total);
 }
 
+// ============================================================
+// RENDER
+// ============================================================
 function renderAll() {
   const rows = purchaseRows();
   const groups = earningsByReferrer();
@@ -276,20 +399,26 @@ function renderAll() {
 
   renderEarnings(groups);
   renderWithdrawals();
-  $("liveStatus").textContent = "● Live connected";
+  if (gotPurchases && gotWithdrawals) $("liveStatus").textContent = "● Live connected";
+
+  const uids = [
+    ...groups.map(g => g.uid),
+    ...Object.values(withdrawals).map(w => w && w.userId)
+  ];
+  ensureNames(uids);
 }
 
 function renderEarnings(groups) {
-  const query = $("earningsSearch").value.trim().toLowerCase();
+  const q = $("earningsSearch").value.trim().toLowerCase();
   const filtered = groups.filter(g => {
     const user = getUser(g.uid);
-    const hay = [g.uid, user.name, user.fullName, user.username, user.email].join(" ").toLowerCase();
-    return (!query || hay.includes(query));
+    const hay = [g.uid, user.name, user.username, user.email].join(" ").toLowerCase();
+    return !q || hay.includes(q);
   });
 
   $("earningsBody").innerHTML = filtered.length ? filtered.map(g => {
     const user = getUser(g.uid);
-    const tiers = Object.entries(g.tierBreakdown).map(([k, v]) => `<span class="badge badge-soft me-1">$${k}: ${v}</span>`).join("");
+    const tiers = Object.entries(g.tierBreakdown).map(([k, v]) => `<span class="badge badge-soft me-1">$${esc(k)}: ${v}</span>`).join("");
     return `
       <tr>
         <td><strong>${esc(displayName(g.uid))}</strong><div class="muted">${esc(user.email || "")}</div></td>
@@ -297,86 +426,156 @@ function renderEarnings(groups) {
         <td class="mono">${esc(g.uid)}</td>
         <td><span class="badge bg-secondary">${g.packages}</span> <div class="mt-1">${tiers}</div></td>
         <td class="text-success fw-bold fs-6">${money(g.total)}</td>
-      </tr>
-    `;
+      </tr>`;
   }).join("") : `<tr><td colspan="5" class="text-center muted py-4">No matching users found.</td></tr>`;
 }
 
 function renderWithdrawals() {
   const entries = Object.entries(withdrawals)
-    .map(([id, w]) => ({ id, ...(w || {}) }))
+    .filter(([, w]) => w && typeof w === "object")
+    .map(([id, w]) => ({ id, ...w }))
     .sort((a, b) => (Number(b.requestedAt) || 0) - (Number(a.requestedAt) || 0));
 
   let pending = 0, paid = 0;
   entries.forEach(w => {
-    const amount = Number(w.amount) || 0;
-    const status = String(w.status || "pending").toLowerCase();
+    const status = statusOf(w);
     if (status === "pending") pending++;
-    else if (status === "paid") paid += amount;
+    else if (status === "paid") paid += Number(w.amount) || 0;
   });
 
   $("pendingCount").textContent = pending;
   $("paidTotal").textContent = money(paid);
 
-  const query = $("withdrawalSearch").value.trim().toLowerCase();
+  const q = $("withdrawalSearch").value.trim().toLowerCase();
   const filter = $("withdrawalStatusFilter").value;
   const filtered = entries.filter(w => {
     const user = getUser(w.userId || "");
-    const hay = [w.userId, w.username, w.withdrawalId, w.walletAddress, user.name, user.username].join(" ").toLowerCase();
-    return (!query || hay.includes(query)) && (filter === "all" || String(w.status || "pending").toLowerCase() === filter);
+    const hay = [w.userId, w.username, w.withdrawalId, w.id, w.walletAddress, user.name, user.username].join(" ").toLowerCase();
+    return (!q || hay.includes(q)) && (filter === "all" || statusOf(w) === filter);
   });
 
   $("withdrawalsBody").innerHTML = filtered.length ? filtered.map(w => {
     const uid = w.userId || "";
     const user = getUser(uid);
-    const status = String(w.status || "pending").toLowerCase();
+    const status = statusOf(w);
     const wallet = String(w.walletAddress || "");
+    const id = esc(w.id);
     let actions = "";
     if (status === "pending") {
       actions = `
-        <button class="btn btn-success btn-sm me-1" onclick="approveWithdrawal('${w.id}')">Approve</button>
-        <button class="btn btn-danger btn-sm" onclick="rejectWithdrawal('${w.id}')">Reject</button>`;
+        <button class="btn btn-success btn-sm me-1" data-action="approve" data-id="${id}">Approve</button>
+        <button class="btn btn-danger btn-sm" data-action="reject" data-id="${id}">Reject</button>`;
     } else if (status === "approved") {
-      actions = `<button class="btn btn-primary btn-sm" onclick="markAsPaid('${w.id}')">Mark as Paid</button>`;
+      actions = `
+        <button class="btn btn-primary btn-sm me-1" data-action="paid" data-id="${id}">Mark as Paid</button>
+        <button class="btn btn-outline-danger btn-sm" data-action="reject" data-id="${id}">Reject</button>`;
     } else {
-      actions = `<span class="muted">Done</span>`;
+      actions = `<span class="muted">Done</span>${w.txHash ? `<div class="mono small-note">${esc(String(w.txHash).slice(0, 18))}...</div>` : ""}`;
     }
     return `
       <tr>
         <td><strong>${esc(displayName(uid, w.username))}</strong><div class="muted">${esc(w.email || user.email || "")}</div></td>
         <td class="mono">${esc(uid)}</td>
         <td class="text-warning fw-bold">${money(w.amount)} USDT</td>
-        <td>${fmtDate(w.requestedAt)}</td>
+        <td>${esc(fmtDate(w.requestedAt))}</td>
         <td>
           <div class="wallet mono">${esc(wallet || "No wallet address")}</div>
           <div class="mt-1 d-flex gap-1 flex-wrap">
-            <button class="btn btn-outline-info btn-sm" onclick="copyAddress('${esc(wallet)}')"><i class="bi bi-clipboard me-1"></i>Copy</button>
-            <a class="btn btn-outline-light btn-sm" target="_blank" href="https://bscscan.com/address/${esc(wallet)}"><i class="bi bi-box-arrow-up-right me-1"></i>BscScan</a>
+            <button class="btn btn-outline-info btn-sm" data-action="copy" data-wallet="${esc(wallet)}"><i class="bi bi-clipboard me-1"></i>Copy</button>
+            <a class="btn btn-outline-light btn-sm" target="_blank" rel="noopener noreferrer" href="https://bscscan.com/address/${encodeURIComponent(wallet)}"><i class="bi bi-box-arrow-up-right me-1"></i>BscScan</a>
           </div>
         </td>
-        <td><span class="status status-${status}">${status}</span></td>
+        <td><span class="status status-${esc(status)}">${esc(status)}</span></td>
         <td>${actions}</td>
       </tr>`;
   }).join("") : `<tr><td colspan="7" class="text-center muted py-4">No withdrawal requests match this filter.</td></tr>`;
 }
 
-// ✅ सिर्फ 1 जगह (withdrawals) अपडेट करने वाला फंक्शन
+// ============================================================
+// ADMIN ACTIONS
+// ============================================================
+const ALLOWED_TRANSITIONS = {
+  pending: ["approved", "rejected"],
+  approved: ["paid", "rejected"]
+};
+
+async function pathExists(path) {
+  const snap = await get(ref(db, path));
+  return snap.exists();
+}
+
 async function updateWithdrawalStatus(withdrawalId, newStatus) {
   const w = withdrawals[withdrawalId];
   if (!w) return alert("Withdrawal not found!");
+
+  // Server se latest status confirm karo (double-click / dusre admin se bachne ke liye)
+  const curSnap = await get(ref(db, `${P}/withdrawals/${withdrawalId}/status`));
+  const cur = String(curSnap.val() || "pending").toLowerCase();
+  if (!(ALLOWED_TRANSITIONS[cur] || []).includes(newStatus)) {
+    return alert(`Is withdrawal ka status already "${cur}" hai. "${newStatus}" nahi kar sakte.`);
+  }
+
   const uid = w.userId;
+  const txId = w.transactionId;
   const now = Date.now();
   const updates = {};
+  const setBoth = (key, val) => {
+    updates[`${P}/withdrawals/${withdrawalId}/${key}`] = val;
+  };
 
-  // सिर्फ मुख्य withdrawals नोड अपडेट करें
-  updates[`${CAMPAIGN_ID}/withdrawals/${withdrawalId}/status`] = newStatus;
-  updates[`${CAMPAIGN_ID}/withdrawals/${withdrawalId}/updatedAt`] = now;
+  setBoth("status", newStatus);
+  setBoth("updatedAt", now);
+
+  let txHash = null;
+  let rejectReason = null;
 
   if (newStatus === "paid") {
-    const txHash = prompt("Please enter the USDT Transaction Hash (TxHash):");
-    if (!txHash) return alert("Cancelled. TxHash is required.");
-    updates[`${CAMPAIGN_ID}/withdrawals/${withdrawalId}/paidAt`] = now;
-    updates[`${CAMPAIGN_ID}/withdrawals/${withdrawalId}/txHash`] = txHash;
+    txHash = (prompt("USDT Transaction Hash (TxHash) daalein:") || "").trim();
+    if (!txHash) return alert("Cancelled. TxHash required hai.");
+    if (!/^0x[a-fA-F0-9]{64}$/.test(txHash)) return alert("TxHash galat lag raha hai (0x + 64 hex characters hona chahiye).");
+    setBoth("paidAt", now);
+    setBoth("txHash", txHash);
+  }
+
+  if (newStatus === "rejected") {
+    const reason = prompt("Reject reason (user ko dikhega, optional):");
+    if (reason === null) return;     // Cancel
+    rejectReason = reason.trim() || null;
+    setBoth("rejectedAt", now);
+    setBoth("rejectReason", rejectReason);
+  }
+
+  if (uid) {
+    // 1) User ki lock entry (warna user dobara withdrawal nahi kar paayega)
+    const lockSnap = await get(ref(db, `${P}/rewards/${uid}`));
+    const lock = lockSnap.val();
+    if (lock && (!lock.withdrawalId || lock.withdrawalId === withdrawalId)) {
+      updates[`${P}/rewards/${uid}/status`] = newStatus;
+      updates[`${P}/rewards/${uid}/updatedAt`] = now;
+    }
+
+    // 2) User ki apni withdrawal copy (sirf agar maujood ho)
+    const uwBase = `${P}/user_withdrawals/${uid}/${withdrawalId}`;
+    if (await pathExists(`${uwBase}/status`)) {
+      updates[`${uwBase}/status`] = newStatus;
+      updates[`${uwBase}/updatedAt`] = now;
+      if (txHash) { updates[`${uwBase}/paidAt`] = now; updates[`${uwBase}/txHash`] = txHash; }
+      if (newStatus === "rejected") { updates[`${uwBase}/rejectReason`] = rejectReason; }
+    }
+
+    // 3) Transaction history entries (sirf agar maujood ho)
+    if (txId) {
+      const userTxBase = `users/${uid}/offer_transactions/${txId}`;
+      if (await pathExists(`${userTxBase}/status`)) {
+        updates[`${userTxBase}/status`] = newStatus;
+        if (txHash) updates[`${userTxBase}/txHash`] = txHash;
+      }
+      const campTxBase = `${P}/transactions/${txId}`;
+      if (await pathExists(`${campTxBase}/status`)) {
+        updates[`${campTxBase}/status`] = newStatus;
+        if (txHash) updates[`${campTxBase}/txHash`] = txHash;
+      }
+    }
   }
 
   try {
@@ -384,39 +583,99 @@ async function updateWithdrawalStatus(withdrawalId, newStatus) {
     alert(`✅ Status updated to ${newStatus.toUpperCase()} successfully!`);
   } catch (e) {
     console.error(e);
-    alert("❌ Error updating status: " + e.message);
+    if (String(e.code || e.message).toUpperCase().includes("PERMISSION")) {
+      alert("❌ PERMISSION_DENIED\n\nYe account Firebase rules ke hisaab se admin nahi hai.\nusers/{uid}/role = admin set karein ya admin@rndstaking.com se login karein.");
+    } else {
+      alert("❌ Error updating status: " + e.message);
+    }
   }
 }
 
-window.copyAddress = function(wallet) {
-  if (!wallet || wallet === "undefined") return alert("No address to copy");
-  navigator.clipboard.writeText(wallet);
-  alert("✅ Full wallet address copied!");
-};
+async function runAction(fn) {
+  if (isBusy) return;
+  isBusy = true;
+  document.querySelectorAll("#withdrawalsBody button").forEach(b => { b.disabled = true; });
+  try {
+    await fn();
+  } finally {
+    isBusy = false;
+    renderWithdrawals();
+  }
+}
 
-window.approveWithdrawal = async function(id) {
-  if (!confirm("Are you sure you want to APPROVE this withdrawal?")) return;
-  await updateWithdrawalStatus(id, "approved");
-};
+function copyAddress(wallet) {
+  if (!wallet) return alert("No address to copy");
+  navigator.clipboard.writeText(wallet).then(
+    () => alert("✅ Full wallet address copied!"),
+    () => alert("Copy failed. Manually copy karein.")
+  );
+}
 
-window.rejectWithdrawal = async function(id) {
-  if (!confirm("Are you sure you want to REJECT this withdrawal?")) return;
-  await updateWithdrawalStatus(id, "rejected");
-};
+// Purane (pehle ke admin code se processed) withdrawals ke stuck locks fix karo
+async function repairLocks() {
+  if (!confirm("Paid/Rejected withdrawals ke stuck 'pending/approved' locks fix karein?")) return;
+  const now = Date.now();
+  const updates = {};
+  let count = 0;
 
-window.markAsPaid = async function(id) {
-  if (!confirm("Have you sent the USDT? Mark as PAID?")) return;
-  await updateWithdrawalStatus(id, "paid");
-};
+  const list = Object.entries(withdrawals).filter(([, w]) => w && w.userId && ["paid", "rejected"].includes(statusOf(w)));
+  for (const [id, w] of list) {
+    const snap = await get(ref(db, `${P}/rewards/${w.userId}`));
+    const lock = snap.val();
+    if (!lock) continue;
+    const st = String(lock.status || "").toLowerCase();
+    if ((st === "pending" || st === "approved") && lock.withdrawalId === id) {
+      updates[`${P}/rewards/${w.userId}/status`] = statusOf(w);
+      updates[`${P}/rewards/${w.userId}/updatedAt`] = now;
+      count++;
+    }
+  }
+
+  if (!count) return alert("✅ Koi stuck lock nahi mila.");
+  try {
+    await update(ref(db), updates);
+    alert(`✅ ${count} lock(s) fix ho gaye.`);
+  } catch (e) {
+    alert("❌ " + e.message);
+  }
+}
+
+// ============================================================
+// EVENTS
+// ============================================================
+$("withdrawalsBody")?.addEventListener("click", (e) => {
+  const btn = e.target.closest("button[data-action]");
+  if (!btn || btn.disabled) return;
+  const { action, id, wallet } = btn.dataset;
+
+  if (action === "copy") return copyAddress(wallet);
+
+  if (action === "approve") {
+    if (!confirm("Are you sure you want to APPROVE this withdrawal?")) return;
+    return runAction(() => updateWithdrawalStatus(id, "approved"));
+  }
+  if (action === "reject") {
+    if (!confirm("Are you sure you want to REJECT this withdrawal?")) return;
+    return runAction(() => updateWithdrawalStatus(id, "rejected"));
+  }
+  if (action === "paid") {
+    if (!confirm("Have you sent the USDT? Mark as PAID?")) return;
+    return runAction(() => updateWithdrawalStatus(id, "paid"));
+  }
+});
 
 $("earningsSearch")?.addEventListener("input", () => renderEarnings(earningsByReferrer()));
 $("withdrawalSearch")?.addEventListener("input", renderWithdrawals);
 $("withdrawalStatusFilter")?.addEventListener("change", renderWithdrawals);
+$("repairBtn")?.addEventListener("click", repairLocks);
 $("refreshBtn")?.addEventListener("click", () => {
+  userCache = {};
   renderAll();
   $("liveStatus").textContent = "● Refreshed";
   setTimeout(() => { $("liveStatus").textContent = "● Live connected"; }, 1500);
 });
+
+window.addEventListener("beforeunload", stopListeners);
 </script>
 </body>
 </html>

@@ -360,7 +360,7 @@ function renderWithdrawals() {
   }).join("") : `<tr><td colspan="7" class="text-center muted py-4">No withdrawal requests match this filter.</td></tr>`;
 }
 
-// ✅ सिंपल और सटीक अपडेट फंक्शन (बिना permission_denied)
+// ✅ सिर्फ 1 जगह (withdrawals) अपडेट करने वाला फंक्शन
 async function updateWithdrawalStatus(withdrawalId, newStatus) {
   const w = withdrawals[withdrawalId];
   if (!w) return alert("Withdrawal not found!");
@@ -368,24 +368,15 @@ async function updateWithdrawalStatus(withdrawalId, newStatus) {
   const now = Date.now();
   const updates = {};
 
-  // 1. मुख्य विड्रॉल नोड
+  // सिर्फ मुख्य withdrawals नोड अपडेट करें
   updates[`${CAMPAIGN_ID}/withdrawals/${withdrawalId}/status`] = newStatus;
   updates[`${CAMPAIGN_ID}/withdrawals/${withdrawalId}/updatedAt`] = now;
-  
-  // 2. यूज़र का विड्रॉल स्टेटस (सिर्फ यही अपडेट करने की ज़रूरत है ताकि यूज़र को दिखे)
-  updates[`${CAMPAIGN_ID}/user_withdrawals/${uid}/${withdrawalId}/status`] = newStatus;
-  updates[`${CAMPAIGN_ID}/user_withdrawals/${uid}/${withdrawalId}/updatedAt`] = now;
 
-  // 3. अगर Paid हो रहा है तो txHash डालें
-  let txHash = null;
   if (newStatus === "paid") {
-    txHash = prompt("Please enter the USDT Transaction Hash (TxHash):");
+    const txHash = prompt("Please enter the USDT Transaction Hash (TxHash):");
     if (!txHash) return alert("Cancelled. TxHash is required.");
-    
     updates[`${CAMPAIGN_ID}/withdrawals/${withdrawalId}/paidAt`] = now;
     updates[`${CAMPAIGN_ID}/withdrawals/${withdrawalId}/txHash`] = txHash;
-    updates[`${CAMPAIGN_ID}/user_withdrawals/${uid}/${withdrawalId}/paidAt`] = now;
-    updates[`${CAMPAIGN_ID}/user_withdrawals/${uid}/${withdrawalId}/txHash`] = txHash;
   }
 
   try {

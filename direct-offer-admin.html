@@ -74,8 +74,7 @@ body { margin: 0; background: var(--bg); color: #edf3ff; min-height: 100vh; }
   <main class="wrap">
     <div id="pageError" class="alert alert-warning error-box"></div>
     <div class="small-note mb-3">
-      Campaign: <strong>Bumper Referral Offer 2026</strong> · Live Firebase data · 
-      <span class="text-info">Referred field: <code>referredBy</code></span>
+      Campaign: <strong>Bumper Referral Offer 2026</strong> · Live Firebase data
     </div>
 
     <!-- Stats Row -->
@@ -108,7 +107,7 @@ body { margin: 0; background: var(--bg); color: #edf3ff; min-height: 100vh; }
 
     <!-- User Claims Breakdown -->
     <section class="panel">
-      <div class="section-title"><i class="bi bi-people-fill text-success me-2"></i>Users With Claims (किसने कितना कमाया)</div>
+      <div class="section-title"><i class="bi bi-people-fill text-success me-2"></i>Users With Claims</div>
       <div class="row g-2 mb-3">
         <div class="col-md-6">
           <input id="earningsSearch" class="form-control" placeholder="Search referrer name, username, UID...">
@@ -121,7 +120,7 @@ body { margin: 0; background: var(--bg); color: #edf3ff; min-height: 100vh; }
               <th>Referrer Name</th>
               <th>Username</th>
               <th>Referrer UID</th>
-              <th>Total Packages (Purchased by downline)</th>
+              <th>Total Packages</th>
               <th>Total Reward Earned</th>
             </tr>
           </thead>
@@ -134,7 +133,7 @@ body { margin: 0; background: var(--bg); color: #edf3ff; min-height: 100vh; }
 
     <!-- Withdrawals -->
     <section class="panel">
-      <div class="section-title"><i class="bi bi-wallet2 text-success me-2"></i>Withdrawal Requests & Payment Actions</div>
+      <div class="section-title"><i class="bi bi-wallet2 text-success me-2"></i>Withdrawal Requests</div>
       <div class="row g-2 mb-3">
         <div class="col-md-6">
           <input id="withdrawalSearch" class="form-control" placeholder="Search name, UID, withdrawal ID, wallet...">
@@ -168,37 +167,15 @@ body { margin: 0; background: var(--bg); color: #edf3ff; min-height: 100vh; }
         </table>
       </div>
     </section>
-
-    <!-- Transaction Details (Latest) -->
-    <section class="panel">
-      <div class="section-title"><i class="bi bi-receipt text-success me-2"></i>Recent Transactions (All offer transactions)</div>
-      <div class="table-responsive" style="max-height: 45vh;">
-        <table class="table table-hover">
-          <thead>
-            <tr>
-              <th>User UID</th>
-              <th>Type</th>
-              <th>Amount</th>
-              <th>Status</th>
-              <th>Date</th>
-              <th>Tx ID</th>
-            </tr>
-          </thead>
-          <tbody id="transactionsBody">
-            <tr><td colspan="6" class="text-center muted py-4">Loading...</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </section>
   </main>
 </div>
 
 <script type="module">
 import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { getDatabase, ref, get, onValue, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+import { getDatabase, ref, onValue, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-// 🔴 TESTING FIREBASE (rwebsite-e031b) — live पर जाने से पहले production से बदलना
+// 🔴 TESTING FIREBASE (rwebsite-e031b)
 const firebaseConfig = {
   apiKey: "AIzaSyDsuqsmiwIG3Ey57MR19tr_8wJQRQ3_W64",
   authDomain: "rwebsite-e031b.firebaseapp.com",
@@ -218,8 +195,6 @@ const CAMPAIGN_ID = "bumper_referral_offer_2026";
 let allUsers = {};
 let purchases = {};
 let withdrawals = {};
-let userWithdrawals = {};
-let campaignTransactions = {};
 let listenersStarted = false;
 
 const $ = id => document.getElementById(id);
@@ -242,35 +217,20 @@ function startListeners() {
   listenersStarted = true;
   $("liveStatus").textContent = "Connecting...";
 
-  // 1. Users (profile info के लिए)
   onValue(ref(db, "users"), snapshot => {
     allUsers = snapshot.val() || {};
     renderAll();
   }, error => showError("Could not read users: " + error.message));
 
-  // 2. Purchases (referral claims के लिए — direct-offer.js इसे लिखता है)
   onValue(ref(db, `${CAMPAIGN_ID}/purchases`), snapshot => {
     purchases = snapshot.val() || {};
     renderAll();
   }, error => showError("Could not read purchases: " + error.message));
 
-  // 3. Withdrawals (admin view)
   onValue(ref(db, `${CAMPAIGN_ID}/withdrawals`), snapshot => {
     withdrawals = snapshot.val() || {};
     renderAll();
   }, error => showError("Could not read withdrawals: " + error.message));
-
-  // 4. User withdrawals (user view — sync check के लिए)
-  onValue(ref(db, `${CAMPAIGN_ID}/user_withdrawals`), snapshot => {
-    userWithdrawals = snapshot.val() || {};
-    renderAll();
-  }, error => console.warn("user_withdrawals read:", error.message));
-
-  // 5. Campaign transactions
-  onValue(ref(db, `${CAMPAIGN_ID}/transactions`), snapshot => {
-    campaignTransactions = snapshot.val() || {};
-    renderAll();
-  }, error => console.warn("transactions read:", error.message));
 }
 
 function showError(message) {
@@ -286,7 +246,6 @@ function displayName(uid, fallback = "") {
   return user.name || user.fullName || user.username || fallback || "Unknown user";
 }
 
-// ✅ purchaseRows — direct-offer.js के `purchases` node से
 function purchaseRows() {
   return Object.entries(purchases)
     .map(([id, p]) => ({ id, ...(p || {}) }))
@@ -317,7 +276,6 @@ function renderAll() {
 
   renderEarnings(groups);
   renderWithdrawals();
-  renderTransactions();
   $("liveStatus").textContent = "● Live connected";
 }
 
@@ -385,23 +343,15 @@ function renderWithdrawals() {
     }
     return `
       <tr>
-        <td>
-          <strong>${esc(displayName(uid, w.username))}</strong>
-          <div class="muted">${esc(w.email || user.email || "")}</div>
-        </td>
+        <td><strong>${esc(displayName(uid, w.username))}</strong><div class="muted">${esc(w.email || user.email || "")}</div></td>
         <td class="mono">${esc(uid)}</td>
         <td class="text-warning fw-bold">${money(w.amount)} USDT</td>
         <td>${fmtDate(w.requestedAt)}</td>
         <td>
           <div class="wallet mono">${esc(wallet || "No wallet address")}</div>
           <div class="mt-1 d-flex gap-1 flex-wrap">
-            <button class="btn btn-outline-info btn-sm" onclick="copyAddress('${esc(wallet)}')">
-              <i class="bi bi-clipboard me-1"></i>Copy
-            </button>
-            <a class="btn btn-outline-light btn-sm" target="_blank"
-               href="https://bscscan.com/address/${esc(wallet)}">
-              <i class="bi bi-box-arrow-up-right me-1"></i>BscScan
-            </a>
+            <button class="btn btn-outline-info btn-sm" onclick="copyAddress('${esc(wallet)}')"><i class="bi bi-clipboard me-1"></i>Copy</button>
+            <a class="btn btn-outline-light btn-sm" target="_blank" href="https://bscscan.com/address/${esc(wallet)}"><i class="bi bi-box-arrow-up-right me-1"></i>BscScan</a>
           </div>
         </td>
         <td><span class="status status-${status}">${status}</span></td>
@@ -410,83 +360,43 @@ function renderWithdrawals() {
   }).join("") : `<tr><td colspan="7" class="text-center muted py-4">No withdrawal requests match this filter.</td></tr>`;
 }
 
-function renderTransactions() {
-  const entries = Object.entries(campaignTransactions)
-    .map(([id, t]) => ({ id, ...(t || {}) }))
-    .sort((a, b) => (Number(b.timestamp) || 0) - (Number(a.timestamp) || 0))
-    .slice(0, 100); // latest 100
-
-  $("transactionsBody").innerHTML = entries.length ? entries.map(t => {
-    const status = String(t.status || "pending").toLowerCase();
-    return `
-      <tr>
-        <td class="mono">${esc(t.userId || "—")}</td>
-        <td>${esc(t.subtype || t.type || "—")}</td>
-        <td class="text-warning fw-bold">${money(t.amount)} ${esc(t.currency || "")}</td>
-        <td><span class="status status-${status}">${status}</span></td>
-        <td>${fmtDate(t.timestamp)}</td>
-        <td class="mono small-note">${esc(t.txId || t.id || "")}</td>
-      </tr>`;
-  }).join("") : `<tr><td colspan="6" class="text-center muted py-4">No transactions yet.</td></tr>`;
-}
-
-// ============================================================
-// 🔄 STATUS SYNC — 5 जगह एक साथ update
-// ============================================================
-async function syncWithdrawalStatus(withdrawalId, newStatus) {
+// ✅ सिंपल और सटीक अपडेट फंक्शन (बिना permission_denied)
+async function updateWithdrawalStatus(withdrawalId, newStatus) {
   const w = withdrawals[withdrawalId];
-  if (!w) { alert("Withdrawal not found!"); return; }
+  if (!w) return alert("Withdrawal not found!");
   const uid = w.userId;
   const now = Date.now();
   const updates = {};
 
-  // 1) Admin view — campaign withdrawals
+  // 1. मुख्य विड्रॉल नोड
   updates[`${CAMPAIGN_ID}/withdrawals/${withdrawalId}/status`] = newStatus;
   updates[`${CAMPAIGN_ID}/withdrawals/${withdrawalId}/updatedAt`] = now;
-  if (newStatus === "paid") updates[`${CAMPAIGN_ID}/withdrawals/${withdrawalId}/paidAt`] = now;
-
-  // 2) User view — user_withdrawals/{uid}/{withdrawalId}
+  
+  // 2. यूज़र का विड्रॉल स्टेटस (सिर्फ यही अपडेट करने की ज़रूरत है ताकि यूज़र को दिखे)
   updates[`${CAMPAIGN_ID}/user_withdrawals/${uid}/${withdrawalId}/status`] = newStatus;
   updates[`${CAMPAIGN_ID}/user_withdrawals/${uid}/${withdrawalId}/updatedAt`] = now;
-  if (newStatus === "paid") updates[`${CAMPAIGN_ID}/user_withdrawals/${uid}/${withdrawalId}/paidAt`] = now;
 
-  // 3) Reward lock — direct-offer.js `rewards/{uid}` पढ़ता है
-  updates[`${CAMPAIGN_ID}/rewards/${uid}/status`] = newStatus;
-  updates[`${CAMPAIGN_ID}/rewards/${uid}/updatedAt`] = now;
-  if (newStatus === "paid") updates[`${CAMPAIGN_ID}/rewards/${uid}/paidAt`] = now;
+  // 3. अगर Paid हो रहा है तो txHash डालें
+  let txHash = null;
+  if (newStatus === "paid") {
+    txHash = prompt("Please enter the USDT Transaction Hash (TxHash):");
+    if (!txHash) return alert("Cancelled. TxHash is required.");
+    
+    updates[`${CAMPAIGN_ID}/withdrawals/${withdrawalId}/paidAt`] = now;
+    updates[`${CAMPAIGN_ID}/withdrawals/${withdrawalId}/txHash`] = txHash;
+    updates[`${CAMPAIGN_ID}/user_withdrawals/${uid}/${withdrawalId}/paidAt`] = now;
+    updates[`${CAMPAIGN_ID}/user_withdrawals/${uid}/${withdrawalId}/txHash`] = txHash;
+  }
 
-  // 4) User offer_transactions sync
   try {
-    const userTxsSnap = await get(ref(db, `users/${uid}/offer_transactions`));
-    const userTxs = userTxsSnap.val() || {};
-    for (const [txId, tx] of Object.entries(userTxs)) {
-      if (tx.withdrawalId === withdrawalId) {
-        updates[`users/${uid}/offer_transactions/${txId}/status`] = newStatus;
-        updates[`users/${uid}/offer_transactions/${txId}/updatedAt`] = now;
-        if (newStatus === "paid") updates[`users/${uid}/offer_transactions/${txId}/paidAt`] = now;
-      }
-    }
-  } catch (e) { console.warn("user tx read error:", e); }
-
-  // 5) Campaign transactions sync
-  try {
-    const campTxSnap = await get(ref(db, `${CAMPAIGN_ID}/transactions`));
-    const campTxs = campTxSnap.val() || {};
-    for (const [txId, tx] of Object.entries(campTxs)) {
-      if (tx.withdrawalId === withdrawalId) {
-        updates[`${CAMPAIGN_ID}/transactions/${txId}/status`] = newStatus;
-        updates[`${CAMPAIGN_ID}/transactions/${txId}/updatedAt`] = now;
-        if (newStatus === "paid") updates[`${CAMPAIGN_ID}/transactions/${txId}/paidAt`] = now;
-      }
-    }
-  } catch (e) { console.warn("campaign tx read error:", e); }
-
-  await update(ref(db), updates);
+    await update(ref(db), updates);
+    alert(`✅ Status updated to ${newStatus.toUpperCase()} successfully!`);
+  } catch (e) {
+    console.error(e);
+    alert("❌ Error updating status: " + e.message);
+  }
 }
 
-// ============================================================
-// 🖱️ BUTTON ACTIONS
-// ============================================================
 window.copyAddress = function(wallet) {
   if (!wallet || wallet === "undefined") return alert("No address to copy");
   navigator.clipboard.writeText(wallet);
@@ -495,31 +405,19 @@ window.copyAddress = function(wallet) {
 
 window.approveWithdrawal = async function(id) {
   if (!confirm("Are you sure you want to APPROVE this withdrawal?")) return;
-  try {
-    await syncWithdrawalStatus(id, "approved");
-    alert("✅ Approved! User page will reflect instantly.");
-  } catch (e) { alert("❌ Error: " + e.message); }
+  await updateWithdrawalStatus(id, "approved");
 };
 
 window.rejectWithdrawal = async function(id) {
   if (!confirm("Are you sure you want to REJECT this withdrawal?")) return;
-  try {
-    await syncWithdrawalStatus(id, "rejected");
-    alert("❌ Rejected! Amount will return to user withdrawable balance.");
-  } catch (e) { alert("❌ Error: " + e.message); }
+  await updateWithdrawalStatus(id, "rejected");
 };
 
 window.markAsPaid = async function(id) {
   if (!confirm("Have you sent the USDT? Mark as PAID?")) return;
-  try {
-    await syncWithdrawalStatus(id, "paid");
-    alert("💰 Marked as Paid!");
-  } catch (e) { alert("❌ Error: " + e.message); }
+  await updateWithdrawalStatus(id, "paid");
 };
 
-// ============================================================
-// 🔍 SEARCH / FILTER EVENTS
-// ============================================================
 $("earningsSearch")?.addEventListener("input", () => renderEarnings(earningsByReferrer()));
 $("withdrawalSearch")?.addEventListener("input", renderWithdrawals);
 $("withdrawalStatusFilter")?.addEventListener("change", renderWithdrawals);
